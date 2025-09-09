@@ -1,0 +1,23 @@
+Qty,Component,Specification,Notes,Cost,Source
+12,Bearing,"1.25mm/0.05"" Dia.",G10 Precision or better,$42.53,https://www.amazon.com/Bearings-Precision-Bearing-Diameter-Zirconia/dp/B0CQFPJFVH
+1,Spring,1mm Dia.,PU stretch cord,$8.88,https://www.amazon.com/Stretch-Magic-Brading-Cord-SM10CL25/dp/B001PZB57G
+70,Magnet,3mm Dia. 4mm Height,Neodym Cylinder Magnet,$28.05,https://www.amazon.com/1000pcs-Super-Cylinder-Earth-Neodymium/dp/B0FMXX93Z9
+1,Tubing,1mm ID / 2mm OD,Brass Pipe,$15.30,https://www.amazon.com/Aopin-Copper-Tubing-Seamless-Straight/dp/B08ZXQ4L4L
+12,Screw,"M2x12mm, Counsersunk",Mount screw,$6.59,https://www.amazon.com/M2x12mm-Socket-Screws-Countersunk-Stainless/dp/B0DF8VQCJG
+6,Screw,M3x4,Grub screw,$5.69,https://www.amazon.com/uxcell-M3x4mm-Internal-Socket-Stainless/dp/B07X235S61
+1,DC Regulator,4.75-23V Step-Down Buck Converter,DC-DC Step Down Module,$8.67,https://www.amazon.com/Regulator-4-75-23V-Step-Down-Converter-Modules/dp/B0DSZCVMLD
+1,Diode,1N5819,Schottky Rectifier,$7.99,https://www.amazon.com/100-Pieces-1N5819-Schottky-Rectifier/dp/B079KG1TN2
+1,MCU,RaspberryPi Pico 2,Microcontroller,$13.38,https://www.amazon.com/Pico-Raspberry-Pre-Soldered-Dual-core-Processor/dp/B0BK9W4H2Q/
+3,Encoder,MT6835,Magnetic Encoder Module,$15.00,https://www.amazon.com/Cwmiibili-Magnetic-Encoder-Brushless-Replace/dp/B0FDL5LHRB
+3,Driver,TB6612FNG,Motor Driver Module,$7.81,https://www.amazon.com/Dual-Motor-Driver-Module-TB6612FNG/dp/B08J3S6G2N
+3,Capacitor,470 ?F 3mm Pitch 8mm Dia.,Electrolytic,$6.99,https://www.amazon.com/ALLECIN-Electrolytic-Capacitor-0-32x0-47in-Capacitors/dp/B0CMQ8GMCF
+3,Capacitor,10.0 ?F  0603 SMD,Ceramic,$2.99,https://www.amazon.com/Pack-CC0603KRX5R6BB106-Ceramic-Capacitor-10UF/dp/B0CMCBS1CH
+2,Resistor,4.7k 0603 SMD,,$10.25,https://www.amazon.com/Pieces-4-7K-Surface-Mount-Resistor/dp/B00VXTANM2
+1,Header,XT60,Power connector,$8.54,https://www.amazon.com/AUTOUTLET-Female-Bullet-Connectors-Battery/dp/B07C3R5W31
+4,Header,2.54mm Pitch,Motor connector,$9.59,https://www.amazon.com/Straight-Breakaway-Connector-Raspberry-Breadboard/dp/B09MYF8XPC
+1,Header,2mm Pitch,Encoder connector,$4.99,https://www.amazon.com/B8B-PH-K-Connector-Header-Through-Position/dp/B0FF3671ZY
+3,Motor,NEMA 17,Stepper Motor,$43.14,https://www.amazon.com/YEJMKJ-Stepper-17HS4401-Connector-1-57inch/dp/B0CDRMHM82
+1,PCB,Custom Build,Main board,$35.00,https://www.pcbway.com
+,,,,,
+,,,,,
+,,,Total,$281.38,
