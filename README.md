@@ -1,4 +1,4 @@
-# Open Micro Manipulator
+# Open Micro-Manipulator
 
 This project contains an open source low-cost, easy-to-build motorized **XYZ Micro-Manipulator** motion control platform achieving submicron precision.
 It's designed for applications such as optical alignment, probing electronic components, and microscopy.
