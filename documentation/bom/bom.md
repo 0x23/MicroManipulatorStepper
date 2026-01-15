@@ -5,7 +5,7 @@
 |------|-----|-------------|----------|----------------|-------|
 | Steel ball | 12 | Ø1.25 mm (0.05") | Precision G10 or better. Can be sourced from small ball bearings | |
 | PU stretch cord | 1 m | Ø1mm | e.g. "Stretch Magic" or "Magic String" | [Aliexpress](https://www.aliexpress.us/item/3256805953910514.html)| ![Pu strech cord](images/PU_StretchCord.png)|
-| Neodym Cylinder Magnet | 70 | Ø3mm h=4 mm | N42 Grade | [Ebay Link](https://www.ebay.de/itm/365333642187?var=635110190027)|
+| Neodym Cylinder Magnet | 70 | Ø3mm h=5 mm | N52 Grade | [Ebay Link]()|
 | Brass Pipe | 1 m | OD=Ø2mm ID=Ø1 mm |  | [Amazon](https://a.co/d/1pRFmtf)| ![Brass Pipe](images/BrassPipe.png)|
 | M2 Screw | 12 | M2×12 mm, Countersunk |  | |
 | M3 Grub Screw | 6 | M3×4 |  | |
