@@ -32,7 +32,7 @@ joint the projects community [Discord Server](https://discord.gg/maRvMVpa2Q).
 5. Upload firmware using VSCode with PlattformIO plugin
 6. Calibrate axis
 
-## NEW: Open Micro-Manipulator GUI
+## ✨NEW: Open Micro-Manipulator GUI
 To make testing and using the Open-Micro Manipulator easy and convenient a python control program with a graphical user interface is provided here: [Open Micro-Manipulator GUI](https://github.com/0x23/MicroManipulatorStepper)
 It has simple controlls to move the device around, while also displaying a live camera feed (e.g. from a microscope camer). Additional features, including a simple g-code runner and realtime mouse control (e.g. for Biology applications).
 
