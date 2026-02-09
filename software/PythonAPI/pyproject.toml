@@ -25,6 +25,12 @@ requires = ["setuptools>=65.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
+plotter = [
+    "matplotlib",
+]
+pretty = [
+    "colorama",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov",
