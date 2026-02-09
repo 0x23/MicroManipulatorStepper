@@ -1,4 +1,4 @@
-from open_micro_stage_api import OpenMicroStageInterface
+from open_micro_stage import OpenMicroStageInterface
 import matplotlib.pyplot as plt
 plt.rcParams['figure.dpi'] = 200
 
@@ -36,5 +36,3 @@ def main():
     # Adjust layout and show
     plt.tight_layout()
     plt.show()
-
-main()
