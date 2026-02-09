@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from open_micro_stage.api import OpenMicroStageInterface, SerialInterface
+from open_micro_stage_api.api import OpenMicroStageInterface, SerialInterface
 
 DESIRED_FIRMWARE_VERSION = "v1.0.1"
 

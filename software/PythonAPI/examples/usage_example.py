@@ -1,4 +1,4 @@
-from open_micro_stage import OpenMicroStageInterface
+from open_micro_stage_api import OpenMicroStageInterface
 
 # create interface and connect
 oms = OpenMicroStageInterface(show_communication=True, show_log_messages=True)

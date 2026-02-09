@@ -1,5 +1,5 @@
 [project]
-name = "open_micro_stage"
+name = "open_micro_stage_api"
 version = "0.1.0"
 description = "Python API for controlling the Open Micro Stage manipulator"
 readme = "README.md"
@@ -41,7 +41,7 @@ Documentation = "https://github.com/HonakerM/MicroManipulatorStepper"
 Issues = "https://github.com/HonakerM/MicroManipulatorStepper/issues"
 
 [tool.setuptools]
-packages = ["open_micro_stage"]
+packages = ["open_micro_stage_api"]
 
 [tool.ruff]
 line-length = 120
