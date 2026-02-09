@@ -1,27 +1,27 @@
+import re
 import threading
 import time
-import re
 from enum import Enum
 
-import serial
 import numpy as np
-from colorama import Fore, Style, init
+import serial
+from colorama import Fore, Style
 
 # --- SerialInterface --------------------------------------------------------------------------------------------------
 
-class SerialInterface:
 
+class SerialInterface:
     class ReplyStatus(Enum):
-        OK = 'ok'
-        ERROR = 'error'
-        TIMEOUT = 'timeout'
-        BUSY = 'busy'
+        OK = "ok"
+        ERROR = "error"
+        TIMEOUT = "timeout"
+        BUSY = "busy"
 
     class LogLevel(Enum):
-        DEBUG = 'debug'
-        INFO = 'info'
-        WARNING = 'warning'
-        ERROR = 'error'
+        DEBUG = "debug"
+        INFO = "info"
+        WARNING = "warning"
+        ERROR = "error"
 
     # Static mapping from prefix to LogLevel
     log_level_prefix_map = {
@@ -31,11 +31,15 @@ class SerialInterface:
         "E)": LogLevel.ERROR,
     }
 
-    def __init__(self, port: str, baud_rate: int = 115200,
-                 command_msg_callback=None,
-                 log_msg_callback=None,
-                 unsolicited_msg_callback=None,
-                 reconnect_timeout: int = 5):
+    def __init__(
+        self,
+        port: str,
+        baud_rate: int = 115200,
+        command_msg_callback=None,
+        log_msg_callback=None,
+        unsolicited_msg_callback=None,
+        reconnect_timeout: int = 5,
+    ):
         """
         Initializes the serial connection and starts background reader.
         :param port: Serial port name (e.g., 'COM3' or '/dev/ttyUSB0').
@@ -66,27 +70,26 @@ class SerialInterface:
         self._reader_thread = threading.Thread(target=self._reader_loop, daemon=True)
         self._reader_thread.start()
 
-
     def connect(self, timeout):
         """
         Try to open the serial port. Retry until timeout expires.
         """
         deadline = time.time() + timeout
-        print(Fore.MAGENTA, end='')
-        print(f"[SerialInterface] Connecting to port '{self.port}'...", end='')
+        print(Fore.MAGENTA, end="")
+        print(f"[SerialInterface] Connecting to port '{self.port}'...", end="")
         while time.time() < deadline:
             try:
                 self.serial = serial.Serial(self.port, self.baud_rate, timeout=2)
-                print(f" [OK]")
-                print(Style.RESET_ALL, end='')
+                print(" [OK]")
+                print(Style.RESET_ALL, end="")
                 return True
-            except (serial.SerialException, OSError) as e:
-                print('.', end='')
+            except (serial.SerialException, OSError):
+                print(".", end="")
                 time.sleep(0.2)
 
         print(f" [FAILED] Timeout after {timeout} seconds.")
-        print(f"[SerialInterface] Connection is permanently closed")
-        print(Style.RESET_ALL, end='')
+        print("[SerialInterface] Connection is permanently closed")
+        print(Style.RESET_ALL, end="")
         self.serial = None
         return False
 
@@ -98,8 +101,8 @@ class SerialInterface:
         while True:
             try:
                 if self.serial is not None and self.serial.in_waiting:
-                    char = self.serial.read(1).decode('ascii', errors='ignore')
-                    if char in ['\n', '\r']:
+                    char = self.serial.read(1).decode("ascii", errors="ignore")
+                    if char in ["\n", "\r"]:
                         if len(buffer) > 0:
                             self._handle_line(buffer)
                             buffer = ""
@@ -108,7 +111,7 @@ class SerialInterface:
                 else:
                     time.sleep(0.001)
             except (serial.SerialException, OSError) as e:
-                print(Fore.MAGENTA+f"[SerialInterface] Lost connection: {e}"+Style.RESET_ALL)
+                print(Fore.MAGENTA + f"[SerialInterface] Lost connection: {e}" + Style.RESET_ALL)
                 try:
                     if self.serial is not None and self.serial.is_open:
                         self.serial.close()
@@ -128,7 +131,8 @@ class SerialInterface:
             # print(line)
             # log message
             if log_level is not None:
-                if self.log_message_callback: self.log_message_callback(log_level, log_msg)
+                if self.log_message_callback:
+                    self.log_message_callback(log_level, log_msg)
             # response
             elif self._waiting_for_response:
                 line_lower = line.lower()
@@ -144,15 +148,16 @@ class SerialInterface:
                 if self._response_status is not None:
                     self._condition.notify()
                 else:
-                    self._response_string += line + '\n'
+                    self._response_string += line + "\n"
 
             # unsolicited message
             else:
-                if self.unsolicited_msg_callback: self.unsolicited_msg_callback(line)
+                if self.unsolicited_msg_callback:
+                    self.unsolicited_msg_callback(line)
 
     def _check_log_msg(self, msg: str):
         if len(msg) < 2:
-            return None, ''
+            return None, ""
         return self.log_level_prefix_map.get(msg[:2]), msg[2:]
 
     def send_command(self, cmd: str, timeout=2) -> tuple[ReplyStatus, str]:
@@ -164,7 +169,7 @@ class SerialInterface:
         """
         with self._lock:
             if not self.serial or not self.serial.is_open:
-                return SerialInterface.ReplyStatus.ERROR, 'Serial not open'
+                return SerialInterface.ReplyStatus.ERROR, "Serial not open"
 
             # Reset state
             self._waiting_for_response = True
@@ -172,11 +177,11 @@ class SerialInterface:
             self._response_error_msg = ""
             self._response_status = None
 
-            cmd = (cmd.strip() + "\n")
-            self.command_msg_callback(cmd, None, '')
+            cmd = cmd.strip() + "\n"
+            self.command_msg_callback(cmd, None, "")
 
             # Send command
-            self.serial.write(cmd.encode('ascii'))
+            self.serial.write(cmd.encode("ascii"))
             self.serial.flush()
 
             # Wait for completion
@@ -185,7 +190,11 @@ class SerialInterface:
                 remaining = end_time - time.time()
                 if remaining <= 0:
                     self._waiting_for_response = False
-                    print(Fore.MAGENTA + f"[SerialInterface] Command timeout, device didn't reply in time" + Style.RESET_ALL)
+                    print(
+                        Fore.MAGENTA
+                        + "[SerialInterface] Command timeout, device didn't reply in time"
+                        + Style.RESET_ALL
+                    )
                     return SerialInterface.ReplyStatus.TIMEOUT, self._response_string
                 self._condition.wait(timeout=remaining)
 
@@ -198,12 +207,14 @@ class SerialInterface:
         if self.serial and self.serial.is_open:
             self.serial.close()
 
+
 # --- OpenMicroStageInterface ------------------------------------------------------------------------------------------
+
 
 class OpenMicroStageInterface:
     # Mapping log levels to colors
     LOG_COLORS = {
-        SerialInterface.LogLevel.DEBUG: Fore.WHITE+Style.DIM,
+        SerialInterface.LogLevel.DEBUG: Fore.WHITE + Style.DIM,
         SerialInterface.LogLevel.INFO: Style.RESET_ALL,
         SerialInterface.LogLevel.WARNING: Fore.YELLOW,
         SerialInterface.LogLevel.ERROR: Fore.RED,
@@ -220,21 +231,27 @@ class OpenMicroStageInterface:
         def version_to_str(v):
             return f"v{v[0]}.{v[1]}.{v[2]}"
 
-        if self.serial is not None: self.disconnect()
-        self.serial = SerialInterface(port, baud_rate,
-                                      log_msg_callback=self.log_msg_callback,
-                                      command_msg_callback=self.command_msg_callback,
-                                      unsolicited_msg_callback=self.unsolicited_msg_callback)
+        if self.serial is not None:
+            self.disconnect()
+        self.serial = SerialInterface(
+            port,
+            baud_rate,
+            log_msg_callback=self.log_msg_callback,
+            command_msg_callback=self.command_msg_callback,
+            unsolicited_msg_callback=self.unsolicited_msg_callback,
+        )
 
         self.disable_message_callbacks = True
         fw_version = self.read_firmware_version()
         min_fw_version = (1, 0, 1)
         print(Fore.MAGENTA + f"Firmware version: {version_to_str(fw_version)}" + Style.RESET_ALL)
         if fw_version < min_fw_version:
-            print(Fore.MAGENTA + f"Firmware version {version_to_str(fw_version)} incompatible. "
-                                 f"At least {version_to_str(min_fw_version)} required" + Style.RESET_ALL)
+            print(
+                Fore.MAGENTA + f"Firmware version {version_to_str(fw_version)} incompatible. "
+                f"At least {version_to_str(min_fw_version)} required" + Style.RESET_ALL
+            )
             self.serial = None
-        print('')
+        print("")
         self.disable_message_callbacks = False
 
     def disconnect(self):
@@ -258,17 +275,17 @@ class OpenMicroStageInterface:
 
         if reply_status is not None:
             if msg:
-                msg = '\n'.join('> ' + line for line in msg.splitlines())
+                msg = "\n".join("> " + line for line in msg.splitlines())
                 print(f"{msg.rstrip()}")
             if error_msg:
                 print(f"{Style.BRIGHT}{str(reply_status.name)}:{Style.RESET_ALL} {error_msg}\n")
             else:
                 print(f"{Style.BRIGHT}{str(reply_status.name)} {Style.RESET_ALL}\n")
         else:
-            print(f"{Fore.GREEN+Style.BRIGHT}{msg.rstrip()}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN + Style.BRIGHT}{msg.rstrip()}{Style.RESET_ALL}")
 
     def unsolicited_msg_callback(self, msg):
-        print(Fore.CYAN+msg+Style.RESET_ALL)
+        print(Fore.CYAN + msg + Style.RESET_ALL)
         pass
 
     def set_workspace_transform(self, transform):
@@ -282,8 +299,8 @@ class OpenMicroStageInterface:
         if ok != SerialInterface.ReplyStatus.OK or len(response) == 0:
             return 0, 0, 0
 
-        major, minor, patch = map(int, re.match(r'v(\d+)\.(\d+)\.(\d+)', response).groups())
-        return major,minor,patch
+        major, minor, patch = map(int, re.match(r"v(\d+)\.(\d+)\.(\d+)", response).groups())
+        return major, minor, patch
 
     def home(self, axis_list=None):
         """
@@ -291,15 +308,15 @@ class OpenMicroStageInterface:
         :param axis_list: Optional list of axis indices to home. If None, all axes are homed.
         :return: The status of the command (e.g. OK, ERROR, TIMEOUT).
         """
-        cmd = 'G28'
-        axis_chars = ['A', 'B', 'C', 'D', 'E', 'F']
+        cmd = "G28"
+        axis_chars = ["A", "B", "C", "D", "E", "F"]
         if axis_list is None:
-            axis_list = [i for i in range(len(axis_chars))]
+            axis_list = list(range(len(axis_chars)))
 
         for axis_idx in axis_list:
             if 0 > axis_idx >= len(axis_chars):
-                raise ValueError('Axis index out of range')
-            cmd += ' '+axis_chars[axis_idx]
+                raise ValueError("Axis index out of range")
+            cmd += " " + axis_chars[axis_idx]
 
         res, msg = self.serial.send_command(cmd + "\n", 10)
         return res
@@ -315,7 +332,8 @@ class OpenMicroStageInterface:
         :return:
         """
         cmd = f"M56 J{joint_index} P"
-        if save_result: cmd += ' S'
+        if save_result:
+            cmd += " S"
         res, msg = self.serial.send_command(cmd, 30)
 
         calibration_data = self._parse_table_data(msg, 3)
@@ -364,11 +382,13 @@ class OpenMicroStageInterface:
 
     def wait_for_stop(self, polling_interval_ms=10, disable_callbacks=True):
         disable_message_callbacks_prev = self.disable_message_callbacks
-        if disable_callbacks: self.disable_message_callbacks = True
+        if disable_callbacks:
+            self.disable_message_callbacks = True
 
         while True:
             res, msg = self.serial.send_command("M53\n")
-            if res != SerialInterface.ReplyStatus.OK: return res
+            if res != SerialInterface.ReplyStatus.OK:
+                return res
             elif msg.strip() == "1":
                 return SerialInterface.ReplyStatus.OK
 
@@ -380,10 +400,7 @@ class OpenMicroStageInterface:
             return None, None, None
 
         # Match values with NO space between axis letter and number
-        match = re.search(
-            r"X([-+]?\d*\.?\d+)\s*Y([-+]?\d*\.?\d+)\s*Z([-+]?\d*\.?\d+)",
-            response
-        )
+        match = re.search(r"X([-+]?\d*\.?\d+)\s*Y([-+]?\d*\.?\d+)\s*Z([-+]?\d*\.?\d+)", response)
         if not match:
             raise ValueError(f"Invalid format: {response}")
 
@@ -406,7 +423,7 @@ class OpenMicroStageInterface:
         return res
 
     def enable_motors(self, enable):
-        cmd = f"M17" if enable else "M18"
+        cmd = "M17" if enable else "M18"
         res, msg = self.serial.send_command(cmd, timeout=5)
         return res
 
@@ -415,11 +432,11 @@ class OpenMicroStageInterface:
         transformed = self.workspace_transform @ np.array([x, y, z, 1.0])
         x_t, y_t, z_t = transformed[:3] / transformed[3]
 
-        cmd = f"G24 X{x_t:.6f} Y{y_t:.6f} Z{z_t:.6f}" # TODO: A, B ,C
+        cmd = f"G24 X{x_t:.6f} Y{y_t:.6f} Z{z_t:.6f}"  # TODO: A, B ,C
         res, msg = self.serial.send_command(cmd)
         return res
 
-    def send_command(self, cmd: str, timeout_s: float=5):
+    def send_command(self, cmd: str, timeout_s: float = 5):
         res, msg = self.serial.send_command(cmd, timeout_s)
         return res, msg
 
@@ -429,7 +446,7 @@ class OpenMicroStageInterface:
         data = [[] for _ in range(cols)]
 
         for line in data_string.strip().splitlines():
-            parts = line.strip().split(',')
+            parts = line.strip().split(",")
             if len(parts) != cols:
                 continue  # skip malformed lines
             numbers = map(float, parts)
