@@ -314,7 +314,7 @@ class OpenMicroStageInterface:
             axis_list = list(range(len(axis_chars)))
 
         for axis_idx in axis_list:
-            if 0 > axis_idx >= len(axis_chars):
+            if (0 > axis_idx) or (axis_idx >= len(axis_chars)):
                 raise ValueError("Axis index out of range")
             cmd += " " + axis_chars[axis_idx]
 

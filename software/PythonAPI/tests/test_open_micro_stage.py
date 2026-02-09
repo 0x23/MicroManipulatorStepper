@@ -132,6 +132,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             "v1.0.1",
         )
         self.interface.connect("/dev/ttyACM0")
+        self.calls_for_initailization = len(self.mock_serial_instance.call_history)
 
     def tearDown(self):
         """Clean up patches."""
@@ -389,7 +390,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         result = self.interface.move_to(5.0, 10.0, 15.0, f=20.0, blocking=True, timeout=0.01)
         
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
-        self.assertEqual(len(self.interface.serial.call_history), 2)
+        self.assertEqual(len(self.interface.serial.call_history), 2+self.calls_for_initailization)
 
     def test_move_to_non_blocking_returns_busy(self):
         """Test move_to returns BUSY immediately when blocking is False."""
@@ -401,7 +402,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         result = self.interface.move_to(5.0, 10.0, 15.0, f=20.0, blocking=False)
         
         self.assertEqual(result, SerialInterface.ReplyStatus.BUSY)
-        self.assertEqual(len(self.interface.serial.call_history), 1)
+        self.assertEqual(len(self.interface.serial.call_history), 1+self.calls_for_initailization)
 
     def test_dwell(self):
         """Test dwell command."""
@@ -469,7 +470,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         result = self.interface.wait_for_stop()
         
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
-        self.assertEqual(len(self.interface.serial.call_history), 3)
+        self.assertEqual(len(self.interface.serial.call_history), 3+self.calls_for_initailization)
 
     def test_wait_for_stop_error(self):
         """Test wait_for_stop returns error status."""
