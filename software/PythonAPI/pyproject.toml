@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Python API for controlling the Open Micro Stage manipulator"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "MicroManipulatorStepper Contributors"}
 ]
@@ -13,15 +13,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
     "numpy",
@@ -48,10 +39,6 @@ Issues = "https://github.com/HonakerM/MicroManipulatorStepper/issues"
 
 [tool.setuptools]
 packages = ["open_micro_stage"]
-package-dir = {"" = "src"}
-
-[tool.setuptools.package-data]
-open_micro_stage = ["py.typed"]
 
 [tool.ruff]
 line-length = 120
