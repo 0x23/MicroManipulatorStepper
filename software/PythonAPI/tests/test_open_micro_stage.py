@@ -11,6 +11,8 @@ from open_micro_stage.api import OpenMicroStageInterface, SerialInterface
 
 class MockSerialInterface:
     """Generic mock implementation of SerialInterface for testing."""
+    ReplyStatus = SerialInterface.ReplyStatus
+    LogLevel = SerialInterface.LogLevel
 
     def __init__(
         self,
@@ -114,7 +116,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         
         # Patch SerialInterface to return the same mock instance every time
         self.patcher = patch(
-            "open_micro_stage.api.SerialInterface",
+            "open_micro_stage.api.SerialInterface.__new__",
             return_value=self.mock_serial_instance
         )
         self.patcher.start()
@@ -123,6 +125,13 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         self.interface = OpenMicroStageInterface(
             show_communication=False, show_log_messages=False
         )
+
+        # default connect for the majority of commands
+        self.mock_serial_instance.set_response(
+            SerialInterface.ReplyStatus.OK,
+            "v1.0.1",
+        )
+        self.interface.connect("/dev/ttyACM0")
 
     def tearDown(self):
         """Clean up patches."""
