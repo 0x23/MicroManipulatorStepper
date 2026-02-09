@@ -8,6 +8,7 @@ import numpy as np
 
 from open_micro_stage.api import OpenMicroStageInterface, SerialInterface
 
+DESIRED_FIRMWARE_VERSION = "v1.0.1"
 
 class MockSerialInterface:
     """Generic mock implementation of SerialInterface for testing."""
@@ -129,7 +130,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         # default connect for the majority of commands
         self.mock_serial_instance.set_response(
             SerialInterface.ReplyStatus.OK,
-            "v1.0.1",
+            DESIRED_FIRMWARE_VERSION,
         )
         self.interface.connect("/dev/ttyACM0")
         self.calls_for_initailization = len(self.mock_serial_instance.call_history)
@@ -159,23 +160,25 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Test successful connection to device."""
         self.mock_serial_instance.set_response(
             SerialInterface.ReplyStatus.OK,
-            "v1.0.1",
+            DESIRED_FIRMWARE_VERSION,
         )
         self.interface.connect("/dev/ttyACM0")
         
         self.assertIsNotNone(self.interface.serial)
+        self.assertEqual(self.interface.serial.port, "/dev/ttyACM0")
 
     def test_connect_with_custom_baud_rate(self):
         """Test connection with custom baud rate."""
         self.mock_serial_instance.set_response(
             SerialInterface.ReplyStatus.OK,
-            "v1.0.1",
+            DESIRED_FIRMWARE_VERSION,
         )
         
         self.interface.connect("/dev/ttyACM0", baud_rate=115200)
         
         # Verify the mock was called with correct parameters
         self.assertIsNotNone(self.interface.serial)
+        self.assertEqual(self.interface.serial.baud_rate, 115200)
 
     def test_connect_incompatible_firmware(self):
         """Test connection fails with incompatible firmware version."""
@@ -193,7 +196,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Test disconnection from device."""
         self.mock_serial_instance.set_response(
             SerialInterface.ReplyStatus.OK,
-            "v1.0.1",
+            DESIRED_FIRMWARE_VERSION,
         )
         
         self.interface.connect("/dev/ttyACM0")
@@ -626,7 +629,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Test end-to-end workflow: connect, home, move, wait for stop."""
         # Set responses for each command in sequence
         self.mock_serial_instance.set_responses([
-            (SerialInterface.ReplyStatus.OK, "v1.0.1"),  # firmware version
+            (SerialInterface.ReplyStatus.OK, DESIRED_FIRMWARE_VERSION),  # firmware version
             (SerialInterface.ReplyStatus.OK, ""),  # home
             (SerialInterface.ReplyStatus.OK, ""),  # move_to
             (SerialInterface.ReplyStatus.OK, "1"),  # wait_for_stop
