@@ -51,6 +51,8 @@ This library has not been published to pypi yet but it can be installed by runni
 pip3 install "git+https://github.com/0x23/MicroManipulatorStepper/#subdirectory=software/PythonAPI"
 ```
 
+If you would like to use the calibration plotter then you will need the additional `plotter` optional dependency.
+
 ## Usage Example
 ```python
 from open_micro_stage_api import OpenMicroStageInterface

@@ -28,9 +28,6 @@ build-backend = "setuptools.build_meta"
 plotter = [
     "matplotlib",
 ]
-pretty = [
-    "colorama",
-]
 dev = [
     "pytest>=7.0",
     "pytest-cov",
