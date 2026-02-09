@@ -1,6 +1,5 @@
 """Tests for the OpenMicroStageInterface class."""
 
-import re
 import unittest
 from unittest.mock import patch
 
@@ -10,8 +9,10 @@ from open_micro_stage.api import OpenMicroStageInterface, SerialInterface
 
 DESIRED_FIRMWARE_VERSION = "v1.0.1"
 
+
 class MockSerialInterface:
     """Generic mock implementation of SerialInterface for testing."""
+
     ReplyStatus = SerialInterface.ReplyStatus
     LogLevel = SerialInterface.LogLevel
 
@@ -102,8 +103,7 @@ class MockSerialInterface:
             if called_cmd == cmd and (timeout is None or called_timeout == timeout):
                 return
         raise AssertionError(
-            f"Command '{cmd}' with timeout={timeout} was not called. "
-            f"Call history: {self.call_history}"
+            f"Command '{cmd}' with timeout={timeout} was not called. Call history: {self.call_history}"
         )
 
 
@@ -114,18 +114,13 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Set up test fixtures with mocked SerialInterface."""
         # Create a persistent mock instance
         self.mock_serial_instance = MockSerialInterface()
-        
+
         # Patch SerialInterface to return the same mock instance every time
-        self.patcher = patch(
-            "open_micro_stage.api.SerialInterface.__new__",
-            return_value=self.mock_serial_instance
-        )
+        self.patcher = patch("open_micro_stage.api.SerialInterface.__new__", return_value=self.mock_serial_instance)
         self.patcher.start()
-        
+
         # Create the interface
-        self.interface = OpenMicroStageInterface(
-            show_communication=False, show_log_messages=False
-        )
+        self.interface = OpenMicroStageInterface(show_communication=False, show_log_messages=False)
 
         # default connect for the majority of commands
         self.mock_serial_instance.set_response(
@@ -150,9 +145,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
 
     def test_initialization_with_params(self):
         """Test initialization with custom parameters."""
-        interface = OpenMicroStageInterface(
-            show_communication=False, show_log_messages=False
-        )
+        interface = OpenMicroStageInterface(show_communication=False, show_log_messages=False)
         self.assertFalse(interface.show_communication)
         self.assertFalse(interface.show_log_messages)
 
@@ -163,7 +156,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             DESIRED_FIRMWARE_VERSION,
         )
         self.interface.connect("/dev/ttyACM0")
-        
+
         self.assertIsNotNone(self.interface.serial)
         self.assertEqual(self.interface.serial.port, "/dev/ttyACM0")
 
@@ -173,9 +166,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             DESIRED_FIRMWARE_VERSION,
         )
-        
+
         self.interface.connect("/dev/ttyACM0", baud_rate=115200)
-        
+
         # Verify the mock was called with correct parameters
         self.assertIsNotNone(self.interface.serial)
         self.assertEqual(self.interface.serial.baud_rate, 115200)
@@ -186,9 +179,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "v0.9.0",
         )
-        
+
         self.interface.connect("/dev/ttyACM0")
-        
+
         # Serial should be set to None on incompatible version
         self.assertIsNone(self.interface.serial)
 
@@ -198,10 +191,10 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             DESIRED_FIRMWARE_VERSION,
         )
-        
+
         self.interface.connect("/dev/ttyACM0")
         self.interface.disconnect()
-        
+
         self.assertIsNone(self.interface.serial)
 
     def test_disconnect_when_not_connected(self):
@@ -212,16 +205,11 @@ class TestOpenMicroStageInterface(unittest.TestCase):
 
     def test_set_and_get_workspace_transform(self):
         """Test setting and getting workspace transform."""
-        transform = np.array([
-            [1, 0, 0, 1],
-            [0, 1, 0, 2],
-            [0, 0, 1, 3],
-            [0, 0, 0, 1]
-        ])
-        
+        transform = np.array([[1, 0, 0, 1], [0, 1, 0, 2], [0, 0, 1, 3], [0, 0, 0, 1]])
+
         self.interface.set_workspace_transform(transform)
         result = self.interface.get_workspace_transform()
-        
+
         self.assertTrue(np.array_equal(result, transform))
 
     def test_read_firmware_version(self):
@@ -230,9 +218,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "v1.2.3",
         )
-        
+
         major, minor, patch = self.interface.read_firmware_version()
-        
+
         self.assertEqual(major, 1)
         self.assertEqual(minor, 2)
         self.assertEqual(patch, 3)
@@ -244,9 +232,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.ERROR,
             "",
         )
-        
+
         major, minor, patch = self.interface.read_firmware_version()
-        
+
         self.assertEqual((major, minor, patch), (0, 0, 0))
 
     def test_home_all_axes(self):
@@ -255,9 +243,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.home()
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called("G28 A B C D E F\n")
 
@@ -267,9 +255,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.home(axis_list=[0, 2])
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called("G28 A C\n")
 
@@ -285,9 +273,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             calibration_response,
         )
-        
+
         result, data = self.interface.calibrate_joint(0, save_result=False)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.assertEqual(len(data), 3)
         self.assertEqual(data[0], [0.5, 1.0, 1.5])  # motor angles
@@ -302,9 +290,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             calibration_response,
         )
-        
+
         result, data = self.interface.calibrate_joint(1, save_result=True)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called("M56 J1 P S")
 
@@ -314,9 +302,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "X10.5 Y20.3 Z15.8",
         )
-        
+
         x, y, z = self.interface.read_current_position()
-        
+
         self.assertAlmostEqual(x, 10.5)
         self.assertAlmostEqual(y, 20.3)
         self.assertAlmostEqual(z, 15.8)
@@ -328,9 +316,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.ERROR,
             "",
         )
-        
+
         x, y, z = self.interface.read_current_position()
-        
+
         self.assertIsNone(x)
         self.assertIsNone(y)
         self.assertIsNone(z)
@@ -341,7 +329,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "invalid format",
         )
-        
+
         with self.assertRaises(ValueError):
             self.interface.read_current_position()
 
@@ -351,9 +339,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.move_to(5.0, 10.0, 15.0, f=20.0, move_immediately=True)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("G0 X5.000000 Y10.000000 Z15.000000 F20.000", cmd)
@@ -362,21 +350,16 @@ class TestOpenMicroStageInterface(unittest.TestCase):
     def test_move_to_with_workspace_transform(self):
         """Test move_to applies workspace transform correctly."""
         # Set a simple translation transform
-        transform = np.array([
-            [1, 0, 0, 2],
-            [0, 1, 0, 3],
-            [0, 0, 1, 4],
-            [0, 0, 0, 1]
-        ])
+        transform = np.array([[1, 0, 0, 2], [0, 1, 0, 3], [0, 0, 1, 4], [0, 0, 0, 1]])
         self.interface.set_workspace_transform(transform)
-        
+
         self.interface.serial.set_response(
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.move_to(0, 0, 0, f=10.0)
-        
+
         # Expected transformed position is (2, 3, 4)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("X2.000000", cmd)
@@ -385,15 +368,17 @@ class TestOpenMicroStageInterface(unittest.TestCase):
 
     def test_move_to_blocking_busy_retry(self):
         """Test move_to retries on BUSY when blocking is True."""
-        self.interface.serial.set_responses([
-            (SerialInterface.ReplyStatus.BUSY, ""),
-            (SerialInterface.ReplyStatus.OK, ""),
-        ])
-        
+        self.interface.serial.set_responses(
+            [
+                (SerialInterface.ReplyStatus.BUSY, ""),
+                (SerialInterface.ReplyStatus.OK, ""),
+            ]
+        )
+
         result = self.interface.move_to(5.0, 10.0, 15.0, f=20.0, blocking=True, timeout=0.01)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
-        self.assertEqual(len(self.interface.serial.call_history), 2+self.calls_for_initailization)
+        self.assertEqual(len(self.interface.serial.call_history), 2 + self.calls_for_initailization)
 
     def test_move_to_non_blocking_returns_busy(self):
         """Test move_to returns BUSY immediately when blocking is False."""
@@ -401,11 +386,11 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.BUSY,
             "",
         )
-        
+
         result = self.interface.move_to(5.0, 10.0, 15.0, f=20.0, blocking=False)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.BUSY)
-        self.assertEqual(len(self.interface.serial.call_history), 1+self.calls_for_initailization)
+        self.assertEqual(len(self.interface.serial.call_history), 1 + self.calls_for_initailization)
 
     def test_dwell(self):
         """Test dwell command."""
@@ -413,9 +398,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.dwell(time_s=2.5, blocking=True)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("G4 S2.500000", cmd)
@@ -426,11 +411,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
-        result = self.interface.set_max_acceleration(
-            linear_accel=100.0, angular_accel=50.0
-        )
-        
+
+        result = self.interface.set_max_acceleration(linear_accel=100.0, angular_accel=50.0)
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("M204 L100.000000 A50.000000", cmd)
@@ -441,11 +424,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
-        result = self.interface.set_max_acceleration(
-            linear_accel=0.001, angular_accel=0.001
-        )
-        
+
+        self.interface.set_max_acceleration(linear_accel=0.001, angular_accel=0.001)
+
         cmd = self.interface.serial.get_last_command()
         # Should be clamped to 0.01
         self.assertIn("M204 L0.010000 A0.010000", cmd)
@@ -456,24 +437,26 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "1",
         )
-        
+
         result = self.interface.wait_for_stop()
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called("M53\n")
 
     def test_wait_for_stop_polls_until_ready(self):
         """Test wait_for_stop polls until device is ready."""
-        self.interface.serial.set_responses([
-            (SerialInterface.ReplyStatus.OK, "0"),
-            (SerialInterface.ReplyStatus.OK, "0"),
-            (SerialInterface.ReplyStatus.OK, "1"),
-        ])
-        
+        self.interface.serial.set_responses(
+            [
+                (SerialInterface.ReplyStatus.OK, "0"),
+                (SerialInterface.ReplyStatus.OK, "0"),
+                (SerialInterface.ReplyStatus.OK, "1"),
+            ]
+        )
+
         result = self.interface.wait_for_stop()
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
-        self.assertEqual(len(self.interface.serial.call_history), 3+self.calls_for_initailization)
+        self.assertEqual(len(self.interface.serial.call_history), 3 + self.calls_for_initailization)
 
     def test_wait_for_stop_error(self):
         """Test wait_for_stop returns error status."""
@@ -481,9 +464,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.ERROR,
             "",
         )
-        
+
         result = self.interface.wait_for_stop()
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.ERROR)
 
     def test_enable_motors(self):
@@ -492,9 +475,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.enable_motors(enable=True)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called_with_args("M17", timeout=5)
 
@@ -504,9 +487,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.enable_motors(enable=False)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called_with_args("M18", timeout=5)
 
@@ -516,9 +499,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.set_pose(x=5.0, y=10.0, z=15.0)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("G24 X5.000000 Y10.000000 Z15.000000", cmd)
@@ -529,9 +512,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "response data",
         )
-        
+
         result, response = self.interface.send_command("M57", timeout_s=3.0)
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.assertEqual(response, "response data")
 
@@ -541,9 +524,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "state info",
         )
-        
+
         result = self.interface.read_device_state_info()
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.interface.serial.assert_command_called("M57")
 
@@ -553,9 +536,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.set_servo_parameter()
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("M55", cmd)
@@ -571,11 +554,11 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.set_servo_parameter(
             pos_kp=200, pos_ki=60000, vel_kp=0.3, vel_ki=120, vel_filter_tc=0.003
         )
-        
+
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         cmd = self.interface.serial.get_last_command()
         self.assertIn("A200.000000", cmd)
@@ -590,9 +573,9 @@ class TestOpenMicroStageInterface(unittest.TestCase):
             SerialInterface.ReplyStatus.OK,
             "",
         )
-        
+
         result = self.interface.read_encoder_angles()
-        
+
         self.assertEqual(result, [])
         self.interface.serial.assert_command_called("M51")
 
@@ -600,7 +583,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Test parsing table data."""
         data_string = "1.0,2.0,3.0\n4.0,5.0,6.0\n7.0,8.0,9.0"
         result = OpenMicroStageInterface._parse_table_data(data_string, 3)
-        
+
         self.assertEqual(len(result), 3)
         self.assertEqual(result[0], [1.0, 4.0, 7.0])
         self.assertEqual(result[1], [2.0, 5.0, 8.0])
@@ -610,7 +593,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Test parsing table data skips malformed lines."""
         data_string = "1.0,2.0,3.0\ninvalid\n4.0,5.0,6.0"
         result = OpenMicroStageInterface._parse_table_data(data_string, 3)
-        
+
         self.assertEqual(len(result), 3)
         self.assertEqual(result[0], [1.0, 4.0])
         self.assertEqual(result[1], [2.0, 5.0])
@@ -620,7 +603,7 @@ class TestOpenMicroStageInterface(unittest.TestCase):
         """Test parsing single row of data."""
         data_string = "10.5,20.3,15.8"
         result = OpenMicroStageInterface._parse_table_data(data_string, 3)
-        
+
         self.assertEqual(result[0], [10.5])
         self.assertEqual(result[1], [20.3])
         self.assertEqual(result[2], [15.8])
@@ -628,43 +611,48 @@ class TestOpenMicroStageInterface(unittest.TestCase):
     def test_workflow_connect_home_move_stop(self):
         """Test end-to-end workflow: connect, home, move, wait for stop."""
         # Set responses for each command in sequence
-        self.mock_serial_instance.set_responses([
-            (SerialInterface.ReplyStatus.OK, DESIRED_FIRMWARE_VERSION),  # firmware version
-            (SerialInterface.ReplyStatus.OK, ""),  # home
-            (SerialInterface.ReplyStatus.OK, ""),  # move_to
-            (SerialInterface.ReplyStatus.OK, "1"),  # wait_for_stop
-        ])
-        
+        self.mock_serial_instance.set_responses(
+            [
+                (SerialInterface.ReplyStatus.OK, DESIRED_FIRMWARE_VERSION),  # firmware version
+                (SerialInterface.ReplyStatus.OK, ""),  # home
+                (SerialInterface.ReplyStatus.OK, ""),  # move_to
+                (SerialInterface.ReplyStatus.OK, "1"),  # wait_for_stop
+            ]
+        )
+
         self.interface.connect("/dev/ttyACM0")
         self.assertIsNotNone(self.interface.serial)
-        
+
         home_result = self.interface.home()
         self.assertEqual(home_result, SerialInterface.ReplyStatus.OK)
-        
+
         move_result = self.interface.move_to(5.0, 10.0, 15.0, f=20.0)
         self.assertEqual(move_result, SerialInterface.ReplyStatus.OK)
-        
+
         stop_result = self.interface.wait_for_stop()
         self.assertEqual(stop_result, SerialInterface.ReplyStatus.OK)
 
     def test_workflow_calibrate_and_move(self):
         """Test end-to-end workflow: calibrate joint and then move."""
         calibration_data = "0.5,1.0,100\n1.0,2.0,200\n"
-        
-        self.mock_serial_instance.set_responses([
-            (SerialInterface.ReplyStatus.OK, calibration_data),  # calibrate
-            (SerialInterface.ReplyStatus.OK, "X5.0 Y10.0 Z15.0"),  # read position
-        ])
-        
+
+        self.mock_serial_instance.set_responses(
+            [
+                (SerialInterface.ReplyStatus.OK, calibration_data),  # calibrate
+                (SerialInterface.ReplyStatus.OK, "X5.0 Y10.0 Z15.0"),  # read position
+            ]
+        )
+
         result, data = self.interface.calibrate_joint(0, save_result=True)
         self.assertEqual(result, SerialInterface.ReplyStatus.OK)
         self.assertEqual(len(data), 3)
-        
+
         x, y, z = self.interface.read_current_position()
         self.assertAlmostEqual(x, 5.0)
         self.assertAlmostEqual(y, 10.0)
         self.assertAlmostEqual(z, 15.0)
 
 
+# Manually run unittest
 if __name__ == "__main__":
     unittest.main()

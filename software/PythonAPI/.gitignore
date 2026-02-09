@@ -26,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.ruff_cache/
 
 # PyInstaller
 *.manifest
