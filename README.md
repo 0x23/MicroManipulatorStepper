@@ -31,7 +31,6 @@ joint the projects community [Discord Server](https://discord.gg/maRvMVpa2Q).
 4. Change the hardware configuration according to your build [hw_config.h](firmware/MotionControllerRP/src/hw_config.h)
 5. Upload firmware using VSCode with PlattformIO plugin
 6. Calibrate axis
-7. 
 
 ## ✨NEW: Hardware Version 4.0
 A new version of the hardware has been released, fixing several issues with the previous design:
