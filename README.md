@@ -134,7 +134,7 @@ You can also 3D-Print the parts but have to live with thermal drift (carbon fill
 <br>
 
 The CAD files can be found here: [CAD Models](construction).
-Please note that FreeCAD version **1.1.0dev** was used, and the files might not work with older versions.
+Please note that FreeCAD version **1.2.0dev** was used, and the files might not work with older versions.
 
 STL files for printing can be found here: [STL Files](construction/STL_3D_Printing/)
 
@@ -154,6 +154,8 @@ For usual winding resistance of your motors, the device should be powered by $${
   <img src="images/Kicad-Board.jpg" alt="Image 1" style="flex: 1; object-fit: contain; height: 10vw;">
   <img src="images/ControllerPCB.jpg" alt="Image 2" style="flex: 1; object-fit: contain; height: 10vw;">
 </div>
+
+The repository now also contains the fabrication files that can be directly uploaded to the PCB manufacturer.
 
 ## ⚙ Firmware
 
