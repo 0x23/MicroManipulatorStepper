@@ -2,7 +2,7 @@ from open_micro_stage_api import OpenMicroStageInterface
 
 # create interface and connect
 oms = OpenMicroStageInterface(show_communication=True, show_log_messages=True)
-oms.connect('/dev/ttyACM0')
+oms.connect("/dev/ttyACM0")
 
 # run this once to calibrate joints
 # for i in range(3): oms.calibrate_joint(i, save_result=True)

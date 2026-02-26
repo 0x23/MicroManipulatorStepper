@@ -59,7 +59,14 @@ It has simple controlls to move the device around, while also displaying a live 
 
 The lightweight Python API handles all serial communication and provides convenient command execution and debug message printing.
 The interface includes functions to home, move, and calibrate the device, as well as to query device information.
-Simply copy the [open_micro_stage_api.py](software/PythonAPI/open_micro_stage_api.py) file into your project (also install the dependencies in requirements.txt), and you’re ready to get started.
+
+This library has not been published to pypi yet but it can be installed by running the following pip command. This can also be added to your projects requirements.txt:
+
+```bash
+pip3 install "git+https://github.com/0x23/MicroManipulatorStepper/#subdirectory=software/PythonAPI"
+```
+
+If you would like to use the calibration plotter then you will need the additional `plotter` optional dependency.
 
 ## Usage Example
 ```python
