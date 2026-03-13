@@ -1,4 +1,6 @@
-# Troubleshooting Common Problems
+# Setup Guide
+
+This guide walks you through the setup of your new **Open Micro-Manipulator** device.
 
 ## Checklist for New Devices
 
@@ -11,3 +13,7 @@
 3. **Is the homing direction correct?**  
    During the homing command (`G28`), the end effector should move toward the base.  
    If it moves in the opposite direction, rewire the motor to reverse its direction.
+
+
+## Calibration and Checking the Encoders
+
