@@ -97,6 +97,7 @@ get_workspace_transform()
 home(axis_list=None)
 calibrate_joint(joint_index, save_result)
 move_to(x, y, z, f, move_immediately, blocking, timeout)
+set_tool_output(tool_idx, output_value, immediate):
 set_pose(x, y, z)
 dwell(time_s, blocking, timeout)
 enable_motors(enable)
