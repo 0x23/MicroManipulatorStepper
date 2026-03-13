@@ -7,9 +7,9 @@ This guide walks you through the setup of your new **Open Micro-Manipulator** de
 1. **Was the mechanical limit pin added to the rotor?**  
    This pin is required for proper homing of the device.
 
-<div style="display: flex;">
-    <img src="mechanical_limit_pin.jpg" alt="Mechanical Limit Pin" width="20%">
-</div>
+    <div style="display: flex;">
+        <img src="mechanical_limit_pin.jpg" alt="Mechanical Limit Pin" width="30%">
+    </div>
 
 
 2. **Are the screws that secure the rotor to the motor shaft installed?**  
@@ -25,6 +25,6 @@ This guide walks you through the setup of your new **Open Micro-Manipulator** de
 You can use the calibration plotter to check if your encoders are working as expected.
 On the left you see a good calibration on the right a bad calibration.
 <div style="display: flex; gap: 2%;">
-  <img src="good_calibration.jpg" alt="GoodCalibration" width="49%">
-  <img src="bad_calibration.jpg" alt="BadCalibration" width="49%">
+  <img src="good_calibration.jpg" alt="GoodCalibration" width="40%">
+  <img src="bad_calibration.jpg" alt="BadCalibration" width="40%">
 </div>
