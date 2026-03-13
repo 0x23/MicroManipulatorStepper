@@ -122,6 +122,8 @@ Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new
 - **Kinematic Model Parameter**: Initialization code has been cleaned up and better comments where added to the parameters. Parameters are preset for HW v4.0 but you can toggle back to the old HW-v3.0 parameters if necessary.
 - **Bugfixes**: smaller bugfixes
 
+IMPORTANT: If you have **Hardware Version v3.0** you need to switch back to the old kinematic parameters in the [kinematic_model_delta3d.cpp](firmware/MotionControllerRP/src/kinematic_models/kinematic_model_delta3d.cpp) file (there is an #define for that at the top).
+
 ## Firmware v1.0.1
 
 This update improves calibration, homing, logging, and adds several new G-Code commands.
