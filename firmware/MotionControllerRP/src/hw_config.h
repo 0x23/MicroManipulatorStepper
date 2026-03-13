@@ -29,7 +29,7 @@ constexpr float ENCODER_ANGLE_TO_ROTOR_ANGLE = (ENCODER_MAGNET_PITCH*2.0f) /
 
 constexpr float HOMING_VELOCITY   = 1.0f;        // rad per s
 constexpr float HOMING_CURRENT    = 0.15f;       // range 0..1
-constexpr float HOMING_FINISH_POS = 0.5f;        // in rad
+// NOT IMPLEMENTED YET: constexpr float HOMING_FINISH_POS = 0.5f;        // in rad
 
 //--- CALIBRATION -------------------------------------------------------------
 
