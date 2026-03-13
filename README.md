@@ -109,7 +109,7 @@ set_servo_parameter(pos_kp, pos_ki, vel_kp, vel_ki, vel_filter_tc)
 Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new feature as well:
 
  - **Tools**: Tool usage (for example for laser engraving) is now supported on the two GPIO pins of J5 on the pcb.
-              They are integrated into the planner and run fast and with correct timing when executing g-code.
+              Tools are integrated into the planner and run fast and with correct timing when executing g-code.
               The tools support PWM (using the PIO feature to squeeze out extra channels without relying on software PWM).
 
    Example usage:
