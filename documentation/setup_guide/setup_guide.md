@@ -28,3 +28,6 @@ On the left you see a good calibration on the right a bad calibration.
   <img src="good_calibration.jpg" alt="GoodCalibration" width="40%">
   <img src="bad_calibration.jpg" alt="BadCalibration" width="40%">
 </div>
+
+
+THIS DOCUMENT IS UNFINISHEd AND WORK IN PROGRESs...
