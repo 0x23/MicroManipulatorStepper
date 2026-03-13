@@ -104,8 +104,25 @@ wait_for_stop(polling_interval_ms, disable_callbacks)
 set_max_acceleration(linear_accel, angular_accel)
 set_servo_parameter(pos_kp, pos_ki, vel_kp, vel_ki, vel_filter_tc)
 ```
+## ✨ Firmware v1.0.4
 
-## ✨ Firmware v1.0.1
+Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new feature as well:
+
+ - **Tools**: Tool usage (for example for laser engraving) is now supported on the two GPIO pins of J5 on the pcb.
+              They are integrated into the planner and run fast and with correct timing when executing g-code.
+              The tools support PWM (using the PIO feature to squeeze out extra channels without relying on software PWM).
+
+   Example usage:
+   ```
+     `M3 T0 S0.7`  // set pwm output of tool 0 to 70%
+     `G4 S0.001`   // dwell command (or any other motion command) - necessary to apply the tools output
+   ```
+   
+- **Calibration**: Calibration has now some addition error checks to improve error reporting of potential problems like encoder alignment.
+- **Kinematic Model Parameter**: Initialization code has been cleaned up and better comments where added to the parameters. Parameters are preset for HW v4.0 but you can toggle back to the old HW-v3.0 parameters if necessary.
+- **Bugfixes**: smaller bugfixes
+
+## Firmware v1.0.1
 
 This update improves calibration, homing, logging, and adds several new G-Code commands.
 
@@ -191,6 +208,7 @@ The client must wait for an acknowledgment from the previous command before send
 | `G4 S/P`       | Dwell/pause for a specified time. <br>• `S`: seconds <br>• `P`: milliseconds |
 | `G24 X Y Z A B C` | Directly set current pose for servo loops with optional rotation vector* `A`, `B`, `C`. |
 | `G28 A-F`      | Home one or more joints. <br>• Optional joint selection `A`–`F`.           |
+| `M3`           | Set Tool output. <br>• `T`: tool index <br>• `S`: output value (0.0..1.0) <br> Note: new values is only applied on the next motion or dwell command         |
 | `M17`          | Enable motors and read current pose as the start pose.                     |
 | `M18`          | Disable motors.                                                            |
 | `M50`          | Get current internal pose. (Encoders are not read here)                                   |
