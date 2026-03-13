@@ -115,8 +115,8 @@ Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new
 
    Example usage:
    ```
-     `M3 T0 S0.7`  // set pwm output of tool 0 to 70%
-     `G4 S0.001`   // dwell command (or any other motion command) - necessary to apply the tools output
+     M3 T0 S0.7  // set pwm output of tool 0 to 70%
+     G4 S0.001   // dwell command (or any other motion command) - necessary to apply the tools output
    ```
    
 - **Calibration**: Calibration has now some addition error checks to improve error reporting of potential problems like encoder alignment.
