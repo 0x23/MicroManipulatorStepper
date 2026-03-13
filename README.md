@@ -45,6 +45,10 @@ A new version of the hardware has been released, fixing several issues with the 
 A video about the improved ball joint and linkage manufactoring process can be found on YT: [Better Ball Joints for the Open Micro-Manipulator](https://www.youtube.com/watch?v=NM2KXvRGmpg)
 Also the FreeCAD model was restructured and improved and now includes all pins and fasteners. It now provides a reference for all required mechanical parts. 
 
+<div style="display: flex;">
+    <img src="images/Hardware-v4.0.jpg" alt="Open Micro-Manipulator GUI" width="50%">
+</div>
+
 WARNING: BOM is not updated yet...
 
 ## Open Micro-Manipulator GUI
@@ -100,8 +104,27 @@ wait_for_stop(polling_interval_ms, disable_callbacks)
 set_max_acceleration(linear_accel, angular_accel)
 set_servo_parameter(pos_kp, pos_ki, vel_kp, vel_ki, vel_filter_tc)
 ```
+## ✨ Firmware v1.0.4
 
-## ✨ Firmware v1.0.1
+Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new feature as well:
+
+ - **Tools**: Tool usage (for example for laser engraving) is now supported on the two GPIO pins of J5 on the pcb.
+              Tools are integrated into the planner and run fast and with correct timing when executing g-code.
+              The tools support PWM (using the PIO feature to squeeze out extra channels without relying on software PWM).
+
+   Example usage:
+   ```
+     `M3 T0 S0.7`  // set pwm output of tool 0 to 70%
+     `G4 S0.001`   // dwell command (or any other motion command) - necessary to apply the tools output
+   ```
+   
+- **Calibration**: Calibration has now some addition error checks to improve error reporting of potential problems like encoder alignment.
+- **Kinematic Model Parameter**: Initialization code has been cleaned up and better comments where added to the parameters. Parameters are preset for HW v4.0 but you can toggle back to the old HW-v3.0 parameters if necessary.
+- **Bugfixes**: smaller bugfixes
+
+IMPORTANT: If you have **Hardware Version v3.0** you need to switch back to the old kinematic parameters in the [kinematic_model_delta3d.cpp](firmware/MotionControllerRP/src/kinematic_models/kinematic_model_delta3d.cpp) file (there is an #define for that at the top).
+
+## Firmware v1.0.1
 
 This update improves calibration, homing, logging, and adds several new G-Code commands.
 
@@ -187,6 +210,7 @@ The client must wait for an acknowledgment from the previous command before send
 | `G4 S/P`       | Dwell/pause for a specified time. <br>• `S`: seconds <br>• `P`: milliseconds |
 | `G24 X Y Z A B C` | Directly set current pose for servo loops with optional rotation vector* `A`, `B`, `C`. |
 | `G28 A-F`      | Home one or more joints. <br>• Optional joint selection `A`–`F`.           |
+| `M3`           | Set Tool output. <br>• `T`: tool index <br>• `S`: output value (0.0..1.0) <br> Note: new values is only applied on the next motion or dwell command         |
 | `M17`          | Enable motors and read current pose as the start pose.                     |
 | `M18`          | Disable motors.                                                            |
 | `M50`          | Get current internal pose. (Encoders are not read here)                                   |
@@ -211,4 +235,6 @@ If you'd like to support this project, consider the following:
 - **Support the project on Ko-fi** – If you find this project valuable, you can support it financially via [Ko-fi](https://ko-fi.com/diffractionlimited) ☕.
 
 ## Youtube Video
-[![Watch the video](images/thumbnail.jpg)](https://youtu.be/MgQbPdiuUTw)
+[![Watch the video](images/video-thumbnails/01_MicroManipulator.jpg)](https://youtu.be/MgQbPdiuUTw)
+[![Better Ball Joints for the Open Micro-Manipulator](images/video-thumbnails/02_BetterBallJoints.jpg)](https://youtu.be/MgQbPdiuUTw)
+
