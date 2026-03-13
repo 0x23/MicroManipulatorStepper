@@ -32,7 +32,7 @@ joint the projects community [Discord Server](https://discord.gg/maRvMVpa2Q).
 5. Upload firmware using VSCode with PlattformIO plugin
 6. Calibrate axis
 
-Also check out the setuo guide for new devices: [Setup guide](documentation/setup_guide.md)
+Also check out the setup guide for new devices: [Setup Guide](documentation/setup_guide.md)
 
 ## ✨NEW: Hardware Version 4.0
 A new version of the hardware has been released, fixing several issues with the previous design:
