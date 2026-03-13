@@ -27,7 +27,7 @@ class LookupTable {
                             int table_size, bool sort_input);
     
     // optimizes the lookup table using gradient descen to minimize error to provided data
-    bool optimize_lut(std::vector<std::pair<float, float>> in_out_pairs);
+    bool optimize_lut(std::vector<std::pair<float, float>> in_out_pairs, float& rms_error);
 
     // clear the lookup table, use init to use it again
     void clear();

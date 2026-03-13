@@ -14,11 +14,60 @@
 
 //*** CLASS *****************************************************************************
 
+#define HW_VERSION4 // remove this if you are using HW-v3 (Note geometry parameters might be slightly off for HW-v3.0!)
+
+#ifdef HW_VERSION4
+
+/**
+ * Initializes the kinematic model and its geometric parameters for hardware version v4.0.
+ */
+KinematicModel_Delta3D::KinematicModel_Delta3D() {
+  const float D2R = Constants::DEG2RAD;
+
+  // location of base origin in endeffector coordinate system (ee in neutral position)
+  Vec3F base_offset(-47.5f, -47.5f, -47.5f);
+  
+  // distance between the two spehere centers of the linkage rod (arms)
+  arm_length = 36.25f*2;
+
+  // distance from arm attachment points to rotor axis
+  rotor_radius = 15.0f;
+
+  // midpoint between the two attachment spheres on the endeffector in EE coordinate system
+  ee_attachment_points[0] = Vec3F(3.54f, -11.5f, 4.5f);
+  ee_attachment_points[1] = Vec3F(4.5f, 3.54f, -11.5f);
+  ee_attachment_points[2] = Vec3F(-11.5f, 4.5f, 3.54f);
+
+  // set actuator transformations based on CAD model
+  actuator_to_base[0].rotation = QuaternionF::from_axis_angle(Vec3F(0.0f, 0.0f, 1.0f), 90.0f*D2R);
+  actuator_to_base[0].translation = Vec3F(-21.5f, 21.0f, 52.0f)+base_offset;
+
+  actuator_to_base[1].rotation = QuaternionF::from_axis_angle(Vec3F(1.0f, 0.0f, 1.0f), 180.0f*D2R);
+  actuator_to_base[1].translation = Vec3F(52.0f, -21.5f, 21.0f)+base_offset;
+
+  actuator_to_base[2].rotation = QuaternionF::from_axis_angle(Vec3F(-1.0f, 0.0f, 0.0f), 90.0f*D2R);
+  actuator_to_base[2].translation = Vec3F(21.0f, 52.0f, -21.5f)+base_offset;
+  
+  // angle offset from home positionto center position of the rotor
+  rotor_angle_offset[0] = 42.0f*Constants::DEG2RAD;
+  rotor_angle_offset[1] = 42.0f*Constants::DEG2RAD;
+  rotor_angle_offset[2] = 42.0f*Constants::DEG2RAD;
+
+  for(int i=0; i<3; i++)
+    base_to_actuator[i] = actuator_to_base[i].inverse();
+}
+
+#else
+
+// Below is the old code for HW-v3.0 for compatibility, some values might be wrong and do not reflect the actual cad model.
+// If you use them please check them against your build. All these problems where fixed in HW-v4 and the new function above
+// uses the correct values.
 KinematicModel_Delta3D::KinematicModel_Delta3D() {
   const float D2R = Constants::DEG2RAD;
 
   // offset to move base origin defined in CAD to endeffector origin near neutral position
-  // real device
+  
+  // REAL DEVICE <--- These might be slightly wrong
   Vec3F base_offset(-32.5f, -32.5f, -32.5f);
   arm_length = 73.8f;
   rotor_radius = 15.0f;
@@ -26,8 +75,7 @@ KinematicModel_Delta3D::KinematicModel_Delta3D() {
   ee_attachment_points[1] = Vec3F(2.0f, -0.5f, -14.5f);
   ee_attachment_points[2] = Vec3F(-14.5f, 2.0f, -0.5f);
 
-  // endeffector attachment points
-  // CAD
+  // CAD <--- These might be be more correct but not sure
   /*
   Vec3F base_offset(-30.5f, -30.5f, -30.5f);
   arm_length = 2*36.5;
@@ -55,6 +103,8 @@ KinematicModel_Delta3D::KinematicModel_Delta3D() {
     base_to_actuator[i] = actuator_to_base[i].inverse();
 }
 
+#endif
+
 int KinematicModel_Delta3D::get_joint_count() {
   return 3;
 }
@@ -65,7 +115,7 @@ bool KinematicModel_Delta3D::foreward(const float* joint_positions, Pose6DF& pos
     Vec3F p = arm_attachment_point(i, joint_positions[i]);
     p = actuator_to_base[i].transformPoint(p);
 
-    // apply ee attachment point offsets offset so that three sphere intersection can be used 
+    // apply ee attachment point offsets so that three sphere intersection can be used 
     // to find ee position. This only works if there is no ee rotation.
     arm_attachment_points[i] = p-ee_attachment_points[i];
   }

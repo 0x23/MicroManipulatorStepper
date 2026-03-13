@@ -14,6 +14,7 @@
 //*** CONST *****************************************************************************
 
 constexpr int NUM_JOINTS = 3;
+constexpr int NUM_TOOLS = 2;
 
 //*** CLASS *****************************************************************************
 
@@ -63,11 +64,16 @@ class MotionProfileConstAcc {
 class CartesianPathSegment {
   public:
     CartesianPathSegment();
+
     CartesianPathSegment(const Pose6DF& start_pose,
                          const Pose6DF& end_pose,
                          const LinearAngular& velocity,
-                         const LinearAngular& max_acceleration);
-    CartesianPathSegment(const Pose6DF& pose,float dwell_time);
+                         const LinearAngular& max_acceleration,
+                         const float tool_outputs[NUM_TOOLS]);
+
+    CartesianPathSegment(const Pose6DF& pose, 
+                         const float tool_outputs[NUM_TOOLS],
+                         float dwell_time);
 
     void evaluate(float time, Pose6DF& pose) const;
     float get_duration() const;
@@ -90,6 +96,7 @@ class CartesianPathSegment {
     MotionProfileConstAcc motion_profile;
 
     float dwell_time;  // stay at start position for given duration if dwell_time > 0
+    float tool_outputs[NUM_TOOLS];
 };
 
 //--- JointSpacePathSegment -------------------------------------------------------------
@@ -100,11 +107,13 @@ class JointSpacePathSegment {
     JointSpacePathSegment();
     JointSpacePathSegment(const float start_pos[NUM_JOINTS],
                           const float end_pos[NUM_JOINTS],
+                          const float tool_outputs[NUM_TOOLS],
                           const float duration);
 
     void evaluate(float time, 
                   float joint_positions[NUM_JOINTS], 
-                  float joint_velocity[NUM_JOINTS]) const;
+                  float joint_velocity[NUM_JOINTS],
+                  float tool_outputs[NUM_TOOLS]) const;
 
     float get_duration();
 
@@ -116,6 +125,7 @@ class JointSpacePathSegment {
     float end_pos[NUM_JOINTS];
     float start_velocity[NUM_JOINTS];
     float end_velocity[NUM_JOINTS];
+    float tool_outputs[NUM_TOOLS];
 
     float duration;
     float inv_duration;

@@ -13,11 +13,16 @@
 #include "kinematic_models/kinematic_model_delta3d.h"
 #include "servo_control/homing_controller.h"
 #include "servo_control/actuator_calibration.h"
+#include "robot_joint/robot_joint.h"
 #include "pico/multicore.h"
 #include "version.h"
+#include "robot_tool/pwm_tool.h"
 
 constexpr int SPINLOCK_ID_SHARED_DATA = 0;
 constexpr int SPINLOCK_ID_JOINTS = 1;
+
+#include <NeoPixelConnect.h>
+NeoPixelConnect led(PIN_BUILTIN_LED, 1);
 
 //*** FUNCTION **************************************************************************
 
@@ -27,123 +32,6 @@ bool startswith(const std::string& str, const std::string& prefix) {
 }
 
 //*** CLASS *****************************************************************************
-
-//--- RobotAxis -------------------------------------------------------------------------
-
-RobotJoint::RobotJoint(MT6835Encoder* encoder, 
-                       TB6612MotorDriver* motor_driver,
-                       int pole_pairs) 
-{
-  RobotJoint::encoder = encoder;
-  RobotJoint::motor_driver = motor_driver;
-  servo_controller = new ServoController(*motor_driver, *encoder, pole_pairs);
-  position = 0.0f;
-  velocity = 0.0f;
-}
-
-RobotJoint::~RobotJoint() {
-  delete servo_controller;
-  delete motor_driver;
-  delete encoder;
-  servo_controller = nullptr;
-  motor_driver = nullptr;
-  encoder = nullptr;
-}
-
-void RobotJoint::init(int joint_idx) {
-  RobotJoint::joint_idx = joint_idx;
-
-  encoder->init(0x5, 0x4);
-  servo_controller->init(0.5);
-  servo_controller->set_motor_enabled(false, false);
-}
-
-bool RobotJoint::calibrate(bool print_measurements) {
-  LOG_INFO("Joint-%i: calibrating joint...", joint_idx);
-
-  HomingController homing_controller;
-  bool homing_ok = homing_controller.run_blocking(servo_controller, -HOMING_VELOCITY, 
-                                                  360.0f*DEG_TO_RAD, HOMING_CURRENT,
-                                                  ENCODER_ANGLE_TO_ROTOR_ANGLE);
-  if(homing_ok == false) {
-    LOG_ERROR("Joint-%i: Calibration failed due to unsuccessful homing sequence", joint_idx);
-    return false;
-  }
-
-  // measure lookup tables
-  LookupTable encoder_raw_to_motor_pos_lut;
-  LookupTable motor_pos_to_field_angle_lut;
-  bool ok = measure_calibration_data(encoder_raw_to_motor_pos_lut, 
-                                     motor_pos_to_field_angle_lut, 
-                                     *servo_controller, 
-                                     CALIBRATION_RANGE*DEG_TO_RAD,
-                                     CALIBRATION_FIELD_VELOCITY, 
-                                     256,
-                                     print_measurements);
-  if(!ok) {
-    LOG_ERROR("Joint-%i: calibrating failed", joint_idx);
-    return false;
-  }
-
-  servo_controller->set_enc_to_pos_lut(encoder_raw_to_motor_pos_lut);
-  servo_controller->set_pos_to_field_lut(motor_pos_to_field_angle_lut);
-  is_calibrated = true;
-  is_homed = true;
-
-  LOG_INFO("Joint-%i: calibrating joint successful.", joint_idx);
-
-  return true;
-}
-
-void RobotJoint::update(float dt, float one_over_dt) {
-  servo_controller->update(position, dt, one_over_dt);
-}
-
-void RobotJoint::update_target(float p, float v) {
-  position = p;
-  velocity = v;
-}
-
-bool RobotJoint::load_calibration() {
-  std::string fn1 = calib_data_filename("enc_to_pos_lut").c_str();
-  std::string fn2 = calib_data_filename("pos_to_field_lut").c_str();
-  if(!LittleFS.exists(fn1.c_str()) || !LittleFS.exists(fn2.c_str())) {
-    LOG_WARNING("Joint-%i: Not all calibration files found. Run joint calibration with M56.", joint_idx);
-    return false;
-  }
-
-  LookupTable enc_to_pos_lut;
-  LookupTable pos_to_field_lut;
-  bool res = true; 
-  res &= load_lut_from_file(enc_to_pos_lut, fn1.c_str());
-  res &= load_lut_from_file(pos_to_field_lut, fn2.c_str());
-  if(res == false)
-    return false;
-
-  servo_controller->set_enc_to_pos_lut(enc_to_pos_lut);
-  servo_controller->set_pos_to_field_lut(pos_to_field_lut);
-
-  is_calibrated = true;
-  LOG_INFO("Joint-%i: Encoder lookup tables loaded (size=%i,%i)", 
-           joint_idx, enc_to_pos_lut.size(), pos_to_field_lut.size());
-
-  return true;
-}
-
-bool RobotJoint::store_calibration() {
-  bool res = true;
-
-  res &= save_lut_to_file(servo_controller->get_enc_to_pos_lut(), 
-                          calib_data_filename("enc_to_pos_lut").c_str());
-  res &= save_lut_to_file(servo_controller->get_pos_to_field_lut(), 
-                          calib_data_filename("pos_to_field_lut").c_str());
-
-  return res;
-}
-
-std::string RobotJoint::calib_data_filename(std::string data_name) const {
-  return std::string("joint")+std::to_string(joint_idx)+"_"+data_name+".dat";
-}
 
 //--- Robot -----------------------------------------------------------------------------
 
@@ -166,6 +54,9 @@ Robot::Robot(float path_segment_time_step) :
   current_feedrate = LinearAngular(10.0f, 1.0f);
   max_acceleration = LinearAngular(500.0f, 50.0f);
   path_buffering_time_us = 50*1e3;
+
+  for(int i=0; i<NUM_TOOLS; i++)
+    robot_tools[i] = nullptr;
 
   state = ERobotState::IDLE;
 }
@@ -219,6 +110,13 @@ void Robot::init() {
     joints[i]->init(i);
     joints[i]->load_calibration();
   }
+
+  // add tools
+  robot_tools[0] = new PwmTool();
+  ((PwmTool*)robot_tools[0])->init(PIN_TOOL1, 8000, 8);
+
+  robot_tools[1] = new PwmTool();
+  ((PwmTool*)robot_tools[1])->init(PIN_TOOL2, 8000, 8);
 
   // setup timer for updating the motion controller (which evaluates joint space path
   // segments and produces the current target position for the servo loops)
@@ -280,13 +178,14 @@ void Robot::update_path_planner() {
 }
 
 /**
- * Updates the motion controller with a timer interrupt in regular intervals.
+ * Updates the motion controller with a timer interrupt in regular intervals (e.g. 2kHz).
  * The function evaluates joint space path segments and produces the current 
  * target position for the servo loops.
  */
 bool Robot::update_motion_controller_isr(repeating_timer_t* timer) {
   float joint_positions[NUM_JOINTS];
   float joint_velocities[NUM_JOINTS];
+  float tool_outputs[NUM_TOOLS];
 
   // get robot pointer
   Robot* robot = (Robot*)timer->user_data;
@@ -296,8 +195,8 @@ bool Robot::update_motion_controller_isr(repeating_timer_t* timer) {
   float dt = float(time_us - robot->last_mc_update_time)*1e-6f;
   robot->last_mc_update_time = time_us;
 
-  // get current joint position/velocity
-  bool update_ok = robot->motion_controller.update(dt, joint_positions, joint_velocities);
+  // get current joint position/velocity and tool outputs
+  bool update_ok = robot->motion_controller.update(dt, joint_positions, joint_velocities, tool_outputs);
 
   // Attempt to acquire spinlock non-blocking and set new target data for the servo loops
   if (update_ok && spin_try_lock_unsafe(robot->shared_data.lock)) {
@@ -308,6 +207,16 @@ bool Robot::update_motion_controller_isr(repeating_timer_t* timer) {
     spin_unlock_unsafe(robot->shared_data.lock);
   }
 
+  // update tool outputs
+  if(update_ok) {
+    auto& tools = robot->robot_tools;
+    for(int i=0; i<tools.size(); i++) {
+      auto* tool = tools[i];
+      if(tool != nullptr)
+        tool->set_value(tool_outputs[i]);
+    }
+  }
+
   // update frequency counter
   robot->motion_controller_frequency_counter.update(dt);
 
@@ -315,7 +224,7 @@ bool Robot::update_motion_controller_isr(repeating_timer_t* timer) {
 }
 
 /**
- * update servo loops, this is called from a second cpu core
+ * update servo loops, this is called from the second cpu core
  */
 void Robot::update_servo_controllers(float dt) {
   float one_over_dt = 1.0f/dt;
@@ -392,6 +301,10 @@ Pose6DF Robot::pose_from_joint_angles() {
     LOG_ERROR("Foreward kinematic failed");
 
   return pose;
+}
+
+CommandParser* Robot::get_command_parser() {
+  return &command_parser;
 }
 
 bool Robot::check_all_joints_ready() {
@@ -537,6 +450,12 @@ void Robot::process_command(const GCodeCommand& cmd, std::string& reply) {
 void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply) {
   reply = "";
 
+  // process tool output command
+  if(cmd.get_command() == "M3") {
+    process_tool_output_command(cmd, reply);
+    return;
+  }
+
    // enable motors
   if(cmd.get_command() == "M17") {
     // read current pose from HW and set it as current pose
@@ -550,6 +469,7 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     spin_unlock_unsafe(joints_spin_lock);
 
     reply = "ok\n";
+    return;
   }
 
   // disable motors
@@ -560,6 +480,7 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     spin_unlock_unsafe(joints_spin_lock);
     
     reply = "ok\n";
+    return;
   }
 
   // get current internal position (not using encoders to read physical position)
@@ -568,6 +489,7 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     reply += std::string(" Y") + std::to_string(current_pose.translation.y);
     reply += std::string(" Z") + std::to_string(current_pose.translation.z);
     reply += "\nok\n";
+    return;
   }
 
     // get current internal position (not using encoders to read physical position)
@@ -579,6 +501,7 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
                std::to_string(angle) + " deg  (raw="+std::to_string(raw_angle)+")\n";
     }
     reply += "ok\n";
+    return;
   }
 
   // get planner queue size
@@ -586,6 +509,7 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     int s = path_planner.input_queue_size();
     reply += std::string("Queue Size: ") + std::to_string(s) + "\n";
     reply += "ok\n";
+    return;
   }
 
   // check if all planned motions are finished executing
@@ -593,16 +517,19 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     bool f = path_planner.all_finished();
     reply += f ? "1\n" : "0\n";
     reply += "ok\n";
+    return;
   }
 
   // set servo loop parameters
   if(cmd.get_command() == "M55") {
     process_set_servo_parameter_command(cmd, reply);
+    return;
   }
 
   // calibrate joint
   if(cmd.get_command() == "M56") {
     process_calibrate_joint_command(cmd, reply);
+    return;
   }
 
   // get info
@@ -624,23 +551,29 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     reply += std::string("Servo Loop: ") + std::to_string(servo_loop_freq/1000) + " kHz\n";
     reply += std::string("Motion Controler: ") + std::to_string(mcontroler_freq) + " Hz\n";
 
+    for(int i=0; i<NUM_TOOLS; i++)
+        reply += std::string("Tool[") + std::to_string(i) + "] output: " + std::to_string(current_tool_outputs[i]) + "\n";
+
     // file list
     reply += std::string("Files on flash: \n");
     auto file_list = get_file_list("/", true);
     for(auto& f : file_list) reply += std::string("  ")+f+"\n";
     reply += "ok\n";
+    return;
   }
 
   // get firmware version
   if(cmd.get_command() == "M58") {
     reply = std::string(FIRMWARE_VERSION)+"\n";
     reply += "ok\n";
+    return;
   }
 
   // print lookup table
   if(cmd.get_command() == "M59") {
     int idx = (int)cmd.get_value('J', 0);
     joints[idx]->servo_controller->get_enc_to_pos_lut().print_to_log();
+    return;
   }
 
   // set linear and angular acceleration
@@ -648,16 +581,20 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     if(cmd.has_word('L')) max_acceleration.linear = cmd.get_value('L');
     if(cmd.has_word('A')) max_acceleration.angular = cmd.get_value('A');
     reply += "ok\n";
+    return;
   }
 }
 
 void Robot::process_motion_command(const GCodeCommand& cmd, std::string& reply) {
   Pose6DF end_pose;
   
+  #ifndef JOINT_READY_OVERRIDE
   if(!all_joints_ready) {
     reply = "error: not all joints calibrated and homed\n";
     return;
   }
+  #endif
+  
   if(path_planner.input_queue_full()) {
     reply = "busy\n";
     return;
@@ -684,9 +621,11 @@ void Robot::process_motion_command(const GCodeCommand& cmd, std::string& reply) 
   }
 
   // create path segment
-  CartesianPathSegment path_segment(current_pose, end_pose, 
+  CartesianPathSegment path_segment(current_pose, 
+                                    end_pose, 
                                     current_feedrate, 
-                                    max_acceleration);
+                                    max_acceleration,
+                                    current_tool_outputs);
 
   bool ok = path_planner.add_cartesian_path_segment(path_segment);
   if(ok) {
@@ -698,6 +637,10 @@ void Robot::process_motion_command(const GCodeCommand& cmd, std::string& reply) 
   }
 }
 
+/**
+ * Immediately sets the current pose without creating path segments or 
+ * interpolating from current position. Useful for external realtime controll.
+ */
 void Robot::process_set_pose_command(const GCodeCommand& cmd, std::string& reply) {
   Pose6DF pose;
 
@@ -725,8 +668,15 @@ void Robot::process_set_pose_command(const GCodeCommand& cmd, std::string& reply
 }
 
 void Robot::process_dwell_command(const GCodeCommand& cmd, std::string& reply) {
+  #ifndef JOINT_READY_OVERRIDE
   if(!all_joints_ready) {
     reply = "error: not all joints calibrated and homed\n";
+    return;
+  }
+  #endif
+
+  if(path_planner.input_queue_full()) {
+    reply = "busy\n";
     return;
   }
 
@@ -736,11 +686,15 @@ void Robot::process_dwell_command(const GCodeCommand& cmd, std::string& reply) {
   if(cmd.has_word('P')) dwell_time = cmd.get_value('P')*0.001f;   // time given in milliseconds
 
   // create path segment
-  CartesianPathSegment path_segment(current_pose, dwell_time);
-  path_planner.add_cartesian_path_segment(path_segment);
-  path_planner.run_look_ahead_planning();
+  CartesianPathSegment path_segment(current_pose, current_tool_outputs, dwell_time);
+  bool ok = path_planner.add_cartesian_path_segment(path_segment);
 
-  reply = "ok\n";
+  if(ok) {
+    path_planner.run_look_ahead_planning();
+    reply = "ok\n";
+  } else {
+    reply = "error\n";
+  }
 }
 
 void Robot::process_set_servo_parameter_command(const GCodeCommand& cmd, std::string& reply) {
@@ -798,3 +752,19 @@ void Robot::process_calibrate_joint_command(const GCodeCommand& cmd, std::string
   bool ok = calibrate_joint(idx, store_calibration, print_measurements);
   reply = ok ? "ok\n" : "error\n";
 }
+
+void Robot::process_tool_output_command(const GCodeCommand& cmd, std::string& reply) {
+  // get tool index
+  int tool_index = (int)cmd.get_value('T', 0);
+  if(tool_index < 0 || tool_index >= NUM_TOOLS) {
+    reply = "error: Tool index out of range\n";
+    return;
+  }
+
+  // set current tool output value
+  float tool_value = cmd.get_value('S', 0.0f);
+  current_tool_outputs[tool_index] = tool_value;
+
+  reply = "ok\n";
+}
+

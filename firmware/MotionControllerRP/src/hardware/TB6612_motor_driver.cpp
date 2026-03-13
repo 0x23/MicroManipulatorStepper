@@ -36,6 +36,7 @@ TB6612MotorDriver::TB6612MotorDriver(
 {
   max_pwm = (1 << pwm_resolution) - 1;
   set_amplitude(0.0f, false);
+  field_angle = 0.0f;
 }
 
 void init_output_pin(uint8_t pin, bool value) {
@@ -113,6 +114,9 @@ float TB6612MotorDriver::get_amplitude() const {
 }
 
 void TB6612MotorDriver::rotate_field(float delta_angle, float rad_per_s, const std::function<void()>& on_step) {
+  if(delta_angle == 0.0f)
+    return;
+    
   float start = field_angle;
   float rad_per_µs = (delta_angle >= 0.0f) ? rad_per_s*1e-6f : -rad_per_s*1e-6f;
 

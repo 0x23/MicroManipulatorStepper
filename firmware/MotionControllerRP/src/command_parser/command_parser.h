@@ -16,7 +16,15 @@ static constexpr int LETTER_COUNT = 26;
 
 class GCodeCommand {
   public:
+    enum class EParseStatus {
+      OK=1,
+      MALFORMED_COMMAND=-1,
+      INVALID_PARAMETER=-2
+    };
+
     GCodeCommand();
+
+    EParseStatus        from_command_str(const char* cmd);
 
     void                reset();
     void                set_command(const char* cmd);
@@ -52,11 +60,9 @@ class CommandParser {
 
     void set_command_processor(ICommandProcessor* cp);
     void add_input_character(char c);  // Feed input chars one by one
-    void update();  // Feed input chars one by one
-
-  protected:
+    void update();                     
+    bool is_command_ready();  // true if command was parsed and is waiting to be executed
     bool parse_line(const char* line);
-    bool handle_gcode_command(const GCodeCommand& cmd);
 
   private:
     char buffer[255];

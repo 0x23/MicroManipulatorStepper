@@ -18,7 +18,10 @@ MotionController::MotionController(PathPlanner* path_planner) {
   current_time = 0.0f;
 }
 
-bool MotionController::update(float dt, float* joint_positions, float* joint_velocities) {
+bool MotionController::update(float dt, 
+                              float* joint_positions,
+                              float* joint_velocities,
+                              float* tool_outputs) {
   // increment time counter
   current_time += dt;
 
@@ -49,6 +52,6 @@ bool MotionController::update(float dt, float* joint_positions, float* joint_vel
     current_path_segment.initialized = false;
 
   // evaluate path segment
-  current_path_segment.evaluate(current_time, joint_positions, joint_velocities);
+  current_path_segment.evaluate(current_time, joint_positions, joint_velocities, tool_outputs);
   return true;
 }

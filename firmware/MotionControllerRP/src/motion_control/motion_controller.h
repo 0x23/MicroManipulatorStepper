@@ -23,7 +23,7 @@ class MotionController {
 
     // updates the motion controller and computes new joint positions and velocities
     // after dt has passed. Ouput array must hav space for 'NUM_JOINTS' entries.
-    bool update(float dt, float* joint_positions, float* joint_velocities);
+    bool update(float dt, float* joint_positions, float* joint_velocities, float* tool_outputs);
 
   private:
     PathPlanner* path_planner;

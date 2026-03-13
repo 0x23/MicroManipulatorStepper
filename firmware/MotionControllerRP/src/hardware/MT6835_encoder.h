@@ -145,7 +145,10 @@ class MT6835Encoder {
       MT6835Encoder(spi_inst_t *spi, uint cs_pin);
       virtual ~MT6835Encoder();
 
-      void init(uint8_t bandwidth=0x5, uint8_t hysteresis=0x4);
+      bool init(uint8_t bandwidth=0x5, uint8_t hysteresis=0x4);
+      bool is_connected();
+      bool is_initialized();
+
       void reset_abs_angle(int32_t abs_raw_angle=0);  // resets the total revolutions of abs angle
       void reset_abs_angle_period();                  // Brings abs angle into [0..2pi)
       float read_abs_angle();                         // returns the absolute angle in radians
@@ -198,6 +201,7 @@ class MT6835Encoder {
       bool check_crc = false;
 
   private:
+      bool initialized=false;
       spi_inst_t *spi;
       uint cs_pin;
       uint8_t last_status = 0;

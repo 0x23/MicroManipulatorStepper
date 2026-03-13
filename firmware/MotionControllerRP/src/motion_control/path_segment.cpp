@@ -112,12 +112,15 @@ float MotionProfileConstAcc::evaluate(float time) const {
 
 CartesianPathSegment::CartesianPathSegment() {
   dwell_time = 0.0f;
+  for(int i=0; i<NUM_TOOLS; i++)
+    tool_outputs[i] = 0.0f;
 }
 
 CartesianPathSegment::CartesianPathSegment(const Pose6DF& start_pose,
                                            const Pose6DF& end_pose,
                                            const LinearAngular& target_velocity,
-                                           const LinearAngular& max_acceleration)
+                                           const LinearAngular& max_acceleration,
+                                           const float tool_outputs[NUM_TOOLS])
 {
   CartesianPathSegment::dwell_time = 0.0f;
   CartesianPathSegment::start_pose = start_pose;
@@ -134,6 +137,8 @@ CartesianPathSegment::CartesianPathSegment(const Pose6DF& start_pose,
 
   translation_delta_normalized = translation_delta.normalized();
 
+  for(int i=0; i<NUM_TOOLS; i++)
+    CartesianPathSegment::tool_outputs[i] = tool_outputs[i];
 
   /*
   QuaternionF rotation_delta = (end_pose.rotation * start_pose.rotation.normalized_inverse());
@@ -143,7 +148,9 @@ CartesianPathSegment::CartesianPathSegment(const Pose6DF& start_pose,
   rotation_delta_axis = axis; */
 }
 
-CartesianPathSegment::CartesianPathSegment(const Pose6DF& pose, float dwell_time)
+CartesianPathSegment::CartesianPathSegment(const Pose6DF& pose,
+                                           const float tool_outputs[NUM_TOOLS], 
+                                           float dwell_time)
 {
   CartesianPathSegment::dwell_time = dwell_time;
   CartesianPathSegment::start_pose = pose;
@@ -156,6 +163,9 @@ CartesianPathSegment::CartesianPathSegment(const Pose6DF& pose, float dwell_time
 
   travel_distance.linear = 0.0f;
   travel_distance.angular = 0.0f;
+
+  for(int i=0; i<NUM_TOOLS; i++)
+    CartesianPathSegment::tool_outputs[i] = tool_outputs[i];
 }
 
 
@@ -209,6 +219,7 @@ JointSpacePathSegment::JointSpacePathSegment() {
 JointSpacePathSegment::JointSpacePathSegment(
   const float start_pos[NUM_JOINTS],
   const float end_pos[NUM_JOINTS],
+  const float tool_outputs[NUM_TOOLS],
   float duration)
 {
   JointSpacePathSegment::duration = duration;
@@ -219,20 +230,31 @@ JointSpacePathSegment::JointSpacePathSegment(
     JointSpacePathSegment::end_pos[i] = end_pos[i];
   }
 
+  for(int i=0; i<NUM_TOOLS; i++) {
+    JointSpacePathSegment::tool_outputs[i] = tool_outputs[i];
+  }
+
   initialized = true;
 }
 
 void JointSpacePathSegment::evaluate(
   float time, 
   float joint_positions[NUM_JOINTS], 
-  float joint_velocity[NUM_JOINTS]) const
+  float joint_velocity[NUM_JOINTS],
+  float tool_outputs[NUM_TOOLS]) const
 {
   float t = time*inv_duration;
   float s = 1.0f-t;
 
+  // perform linear interpolation
   for(int i=0; i<NUM_JOINTS; i++) {
     joint_positions[i] = start_pos[i]*s + end_pos[i]*t;
-    joint_velocity[i] = 0;
+    joint_velocity[i] = 0; // velocity currently not computed (TODO)
+  }
+
+  // copy tool putput (tool outputs are not interpolated)
+  for(int i=0; i<NUM_TOOLS; i++) {
+    tool_outputs[i] = JointSpacePathSegment::tool_outputs[i];
   }
 }
 
@@ -294,7 +316,10 @@ bool JointSpacePathSegmentGenerator::generate_next(JointSpacePathSegment& js_pat
   
   // create joint space path segment
   float duration = current_time-initial_time;
-  js_path_segment = JointSpacePathSegment(current_joint_pos, next_joint_pos, duration);
+  js_path_segment = JointSpacePathSegment(current_joint_pos, 
+                                          next_joint_pos,
+                                          path_segment->tool_outputs,
+                                          duration);
 
   // update current joint pos
   for(int i=0; i<NUM_JOINTS; i++)

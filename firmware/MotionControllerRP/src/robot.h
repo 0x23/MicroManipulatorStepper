@@ -20,17 +20,11 @@
 #include "motion_control/motion_controller.h"
 #include "command_parser/command_parser.h"
 
-constexpr int ENCODER_LUT_SIZE = 256; 
-
-//*** CALSS *****************************************************************************
+//*** CLASS *****************************************************************************
 
 class Robot;
-
-//--- PersistentData --------------------------------------------------------------------
-
-struct PersistentRobotData {
-  float encoder_lut[NUM_JOINTS][ENCODER_LUT_SIZE];
-};
+class RobotJoint;
+class IRobotTool;
 
 //--- SharedData ------------------------------------------------------------------------
 
@@ -54,36 +48,6 @@ struct SharedData {
   spin_lock_t* lock = nullptr;
 };
 
-//--- RobotJoint ------------------------------------------------------------------------
-
-class RobotJoint {
-  public:
-    RobotJoint(MT6835Encoder* encoder, TB6612MotorDriver* motor_driver, int pole_pairs);
-    ~RobotJoint();
-
-    void init(int joint_idx);
-    bool calibrate(bool print_measurements);
-    void update(float dt, float one_over_dt);
-    void update_target(float p, float v);
-    bool load_calibration();
-    bool store_calibration();
-
-  private:
-    std::string calib_data_filename(std::string data_name) const;
-
-  public:
-    int joint_idx = 0;
-    bool is_homed = false;
-    bool is_calibrated = false;
-
-    float position;
-    float velocity;
-
-    MT6835Encoder* encoder;
-    TB6612MotorDriver* motor_driver;
-    ServoController* servo_controller;
-};
-
 //--- Robot -----------------------------------------------------------------------------
 
 class Robot : public ICommandProcessor {
@@ -103,6 +67,8 @@ class Robot : public ICommandProcessor {
 
     void set_pose(const Pose6DF& pos);
     Pose6DF pose_from_joint_angles();
+  
+    CommandParser* get_command_parser();
 
   public:
     void send_reply(const char* str) override;
@@ -116,6 +82,7 @@ class Robot : public ICommandProcessor {
     void process_set_servo_parameter_command(const GCodeCommand& cmd, std::string& reply);
     void process_home_command(const GCodeCommand& cmd, std::string& reply);
     void process_calibrate_joint_command(const GCodeCommand& cmd, std::string& reply);
+    void process_tool_output_command(const GCodeCommand& cmd, std::string& reply);
 
   protected:
     bool check_all_joints_ready();   // checks if all joints are homed and calibrated
@@ -136,6 +103,7 @@ class Robot : public ICommandProcessor {
     CommandParser command_parser;
 
     Pose6DF current_pose;
+    float current_tool_outputs[NUM_TOOLS];
     LinearAngular max_acceleration;
     LinearAngular current_feedrate;
 
@@ -146,4 +114,6 @@ class Robot : public ICommandProcessor {
 
     FrequencyCounter servo_loop_frequency_counter;
     FrequencyCounter motion_controller_frequency_counter;
+
+    std::array<IRobotTool*, NUM_TOOLS> robot_tools;
 };

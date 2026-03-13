@@ -147,7 +147,7 @@ bool LookupTable::init_interpolating(std::vector<std::pair<float, float>> in_out
   return true;
 }
 
-bool LookupTable::optimize_lut(std::vector<std::pair<float, float>> in_out_pairs) {
+bool LookupTable::optimize_lut(std::vector<std::pair<float, float>> in_out_pairs, float& rms_error) {
   if (lookup_table.empty() || in_out_pairs.empty())
     return false;
 
@@ -198,7 +198,9 @@ bool LookupTable::optimize_lut(std::vector<std::pair<float, float>> in_out_pairs
     //if(iter%100 == 0)
     //  LOG_DEBUG("iteration %04i: rms=%f", iter, sqrtf(total_loss));
   }
-  LOG_DEBUG("Optimizing lookup table finished: rms=%f", total_loss);
+
+  rms_error = sqrt(total_loss);
+  LOG_DEBUG("Optimizing lookup table finished: rms_error=%f", rms_error);
 
   return true;
 }

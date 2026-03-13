@@ -36,7 +36,7 @@ void HomingController::start(ServoController* servo_controller,
   float pole_pair_count = servo_controller->get_pole_pair_count();
   float field_angle_to_encoder_angle = 1.0f / pole_pair_count / encoder_angle_to_motor_angle;
 
-  if(retract_angle_rad >= 0.0f)
+  if(retract_angle_rad > 0.0f)
     HomingController::retract_field_angle = retract_angle_rad * pole_pair_count;
 
   // field_angle_to_rotor_angle = 1.0 / pole_pair_count
@@ -136,7 +136,7 @@ void HomingController::on_endstop_detected() {
 void HomingController::finalize() {
    auto& motor_driver = servo_ctrl->get_motor_driver();
    float pole_pair_count = servo_ctrl->get_pole_pair_count();
-
+ 
   // back off from home position
   motor_driver.rotate_field(retract_field_angle * (field_velocity>0.0f ? -1.0f : 1.0f), 
                             retract_field_velocity, [this](){

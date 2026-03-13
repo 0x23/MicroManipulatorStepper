@@ -11,7 +11,6 @@
 #include "hardware/pll.h"
 #include "hardware/vreg.h"
 
-#include <NeoPixelConnect.h>
 #include <Wire.h>
 #include <algorithm>
 
@@ -23,9 +22,11 @@
 #include "hw_config.h"
 #include "LittleFS.h"
 
+#include "demo_gcode_generator.h"
+
 //*** GLOBALS ***************************************************************************
 
-NeoPixelConnect strip(PIN_BUILTIN_LED, 1);
+// NeoPixelConnect strip(PIN_BUILTIN_LED, 1);
 Robot robot(0.01f);
 
 /*
@@ -68,22 +69,29 @@ void overclock() {
 }
 
 void set_led_color(uint8_t r, uint8_t g, uint8_t b) {
-  strip.neoPixelSetValue(0, r, g, b, false);
+ /* strip.neoPixelSetValue(0, r, g, b, false);
   delayMicroseconds(2000);
-  strip.neoPixelShow();
+  strip.neoPixelShow(); */
 }
 
 void led_blink(uint8_t r, uint8_t g, uint8_t b, int count, int period_time_ms) {
   for(int i=0; i<count; i++) {
-    set_led_color(r, g, b);
+    gpio_put(PIN_BUILTIN_LED, 1);
+    // set_led_color(r, g, b);
     sleep_ms(period_time_ms/2);
-    set_led_color(0, 0, 0);
+    // set_led_color(0, 0, 0);
+    gpio_put(PIN_BUILTIN_LED, 0);
     sleep_ms(period_time_ms/2);
   }
 }
 
 void main_core0() {
   uint64_t last_time = time_us_64();
+
+  #ifdef DEMO_MODE
+    auto* demo_gcode_generator = new DemoGcodeGenerator(&robot);
+    demo_gcode_generator->run();  // blocks forever
+  #endif
 
   while(true) {
     // update motion controller
@@ -111,12 +119,17 @@ void main_core1() {
 }
 
 void setup() {
+  gpio_init(PIN_BUILTIN_LED);
+  gpio_set_dir(PIN_BUILTIN_LED, GPIO_OUT);
+  
   led_blink(0, 0, 30, 3, 100);
   // stdio_init_all();  // Initializes USB or UART stdio
   overclock();
   // Serial.begin(921600);
   Logger::instance().begin(921600, false);
+  #ifndef DEMO_MODE
   while(!Serial);
+  #endif
 
   set_led_color(50, 10, 0);
   // auto* test = new KinematicModel_Delta3D(); test->test(); delete test;
@@ -145,6 +158,8 @@ void setup() {
   set_led_color(0, 20, 0);
   LOG_INFO("Initialization finished");
   LOG_INFO(" ");
+
+  gpio_put(PIN_BUILTIN_LED, 1);
 
   return;
 

@@ -7,6 +7,7 @@
 #include "hardware/spi.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
+#include "utilities/logging.h"
 
 void MT6835Encoder::setup_spi(spi_inst_t* spi, uint pin_sck, uint pin_mosi, uint pin_miso, int32_t baudrate_hz) {
   // Set GPIO functions to SPI
@@ -17,22 +18,27 @@ void MT6835Encoder::setup_spi(spi_inst_t* spi, uint pin_sck, uint pin_mosi, uint
   // SPI format: 8 bits, mode 3 (CPOL=1, CPHA=1)
   spi_init(spi, baudrate_hz);
   spi_set_format(spi, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+
+  sleep_ms(10);
 }
 
 MT6835Encoder::MT6835Encoder(spi_inst_t* spi, uint cs_pin) : spi(spi), cs_pin(cs_pin) {
-  // nop
+  if (cs_pin >= 0) {
+      gpio_init(cs_pin);
+      gpio_set_dir(cs_pin, GPIO_OUT);
+      gpio_put(cs_pin, 1);  // CS high
+  }
 }
 
 MT6835Encoder::~MT6835Encoder() {
   // nop
 }
 
-void MT6835Encoder::init(uint8_t bandwidth, uint8_t hysteresis) {
-  if (cs_pin >= 0) {
-      gpio_init(cs_pin);
-      gpio_set_dir(cs_pin, GPIO_OUT);
-      gpio_put(cs_pin, 1);  // CS high
-  }
+bool MT6835Encoder::init(uint8_t bandwidth, uint8_t hysteresis) {
+  sleep_ms(100);
+
+  if(is_connected() == false)
+    return false;
 
   set_rotation_direction(0);    // needs to be set, otherwise might be random
   set_bandwidth(bandwidth);
@@ -40,6 +46,25 @@ void MT6835Encoder::init(uint8_t bandwidth, uint8_t hysteresis) {
 
   last_raw_angle = 0;
   abs_raw_angle = 0;
+  initialized = true;
+
+  return true;
+}
+
+bool MT6835Encoder::is_connected() {
+  uint8_t check_bytes[] = {37, 109, 179, 251, 1};
+  for(int i=0; i<sizeof(check_bytes); i++) {
+    write_register(MT6835_REG_USERID, check_bytes[i]);
+    uint8_t user_id = read_register(MT6835_REG_USERID);
+    if(user_id != check_bytes[i])
+      return false;
+  }
+
+  return true;
+}
+
+bool MT6835Encoder::is_initialized() {
+  return initialized;
 }
 
 void MT6835Encoder::reset_abs_angle(int32_t abs_raw_angle) {

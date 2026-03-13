@@ -24,6 +24,38 @@ const std::string& GCodeCommand::get_command() const {
   return command;
 }
 
+GCodeCommand::EParseStatus GCodeCommand::from_command_str(const char* gcode_command) {
+  // Copy line into a mutable buffer
+  char line_copy[256];
+  strncpy(line_copy, gcode_command, sizeof(line_copy));
+  line_copy[sizeof(line_copy) - 1] = '\0';
+
+  // Tokenize the first word (e.g., G0, M3, T1)
+  char* saveptr = nullptr;
+  char* token = strtok_r(line_copy, " ", &saveptr);
+  if (!token || token[0] < 'A' || token[0] > 'Z') {
+    return EParseStatus::MALFORMED_COMMAND;
+  }
+
+  reset();
+  set_command(token);
+
+  // Parse remaining words (e.g., X1.0, Y2.5, F200)
+  while ((token = strtok_r(nullptr, " ", &saveptr))) {
+    if (token[0] >= 'A' && token[0] <= 'Z') {
+      if(token[1] == '\0')
+        set_value(token[0], 0.0f);
+      else
+        set_value(token[0], strtof(token + 1, nullptr));
+    } else {
+      return EParseStatus::INVALID_PARAMETER;
+    }
+  }
+
+  return EParseStatus::OK;
+}
+
+
 void GCodeCommand::reset() {
   // Initialize all word values to NaN to represent "not set"
   for (float& value : word_values) {
@@ -116,6 +148,10 @@ void CommandParser::update() {
   }
 }
 
+bool CommandParser::is_command_ready() {
+  return command_ready;
+}
+
 // Feed input chars one by one
 void CommandParser::add_input_character(char c) {
   if (c == '\n' || c == '\r') {
@@ -132,41 +168,19 @@ void CommandParser::add_input_character(char c) {
 bool CommandParser::parse_line(const char* line) {
   command_ready = false;
 
-  // Copy line into a mutable buffer
-  char line_copy[256];
-  strncpy(line_copy, line, sizeof(line_copy));
-  line_copy[sizeof(line_copy) - 1] = '\0';
+  // reset and parse gcode command from string
+  GCodeCommand::EParseStatus ret = command.from_command_str(line);
 
-  // Tokenize the first word (e.g., G0, M3, T1)
-  char* saveptr = nullptr;
-  char* token = strtok_r(line_copy, " ", &saveptr);
-  if (!token || token[0] < 'A' || token[0] > 'Z') {
+  if(ret == GCodeCommand::EParseStatus::MALFORMED_COMMAND) {
     command_processor->send_reply("error: malformed command\n");
     return false;
   }
 
-  command.reset();
-  command.set_command(token);
-
-  // Parse remaining words (e.g., X1.0, Y2.5, F200)
-  while ((token = strtok_r(nullptr, " ", &saveptr))) {
-    if (token[0] >= 'A' && token[0] <= 'Z') {
-      if(token[1] == '\0')
-        command.set_value(token[0], 0.0f);
-      else
-      command.set_value(token[0], strtof(token + 1, nullptr));
-    } else {
-      command_processor->send_reply("error: invalid parameter\n");
-      return false;
-    }
+  if(ret == GCodeCommand::EParseStatus::INVALID_PARAMETER) {
+    command_processor->send_reply("error: invalid parameter\n");
+    return false;
   }
 
   command_ready = true;
   return true;
-}
-
-// returns false if the command could not yet be processed.
-// The function will be called witht the same command later to try again.
-bool CommandParser::handle_gcode_command(const GCodeCommand& cmd) {
-  return false;
 }
