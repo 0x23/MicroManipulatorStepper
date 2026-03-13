@@ -45,6 +45,10 @@ A new version of the hardware has been released, fixing several issues with the 
 A video about the improved ball joint and linkage manufactoring process can be found on YT: [Better Ball Joints for the Open Micro-Manipulator](https://www.youtube.com/watch?v=NM2KXvRGmpg)
 Also the FreeCAD model was restructured and improved and now includes all pins and fasteners. It now provides a reference for all required mechanical parts. 
 
+<div style="display: flex;">
+    <img src="images/Hardware-v4.0.jpg" alt="Open Micro-Manipulator GUI" width="50%">
+</div>
+
 WARNING: BOM is not updated yet...
 
 ## Open Micro-Manipulator GUI
@@ -211,4 +215,6 @@ If you'd like to support this project, consider the following:
 - **Support the project on Ko-fi** – If you find this project valuable, you can support it financially via [Ko-fi](https://ko-fi.com/diffractionlimited) ☕.
 
 ## Youtube Video
-[![Watch the video](images/thumbnail.jpg)](https://youtu.be/MgQbPdiuUTw)
+[![Watch the video](images/video-thumbnails/01_MicroManipulator.jpg)](https://youtu.be/MgQbPdiuUTw)
+[![Better Ball Joints for the Open Micro-Manipulator](images/video-thumbnails/02_BetterBallJoints.jpg)](https://youtu.be/MgQbPdiuUTw)
+
