@@ -82,6 +82,7 @@ void Robot::init() {
       PIN_MOTOR_EN, PIN_M1_PWM_A_POS, PIN_M1_PWM_A_NEG, PIN_MOTOR_PWMAB,
       PIN_MOTOR_EN, PIN_M1_PWM_B_POS, PIN_M1_PWM_B_NEG, PIN_MOTOR_PWMAB
     );
+	encoder->set_crc_enabled(ENABLE_ENCODER_CRC);
     joints[0] = new RobotJoint(encoder, motor_driver, MOTOR1_POLE_PAIRS);
   }
 
@@ -92,6 +93,7 @@ void Robot::init() {
       PIN_MOTOR_EN, PIN_M2_PWM_A_POS, PIN_M2_PWM_A_NEG, PIN_MOTOR_PWMAB,
       PIN_MOTOR_EN, PIN_M2_PWM_B_POS, PIN_M2_PWM_B_NEG, PIN_MOTOR_PWMAB
     );
+	encoder->set_crc_enabled(ENABLE_ENCODER_CRC);
     joints[1] = new RobotJoint(encoder, motor_driver, MOTOR2_POLE_PAIRS);
   }
 
@@ -102,6 +104,7 @@ void Robot::init() {
       PIN_MOTOR_EN, PIN_M3_PWM_A_POS, PIN_M3_PWM_A_NEG, PIN_MOTOR_PWMAB,
       PIN_MOTOR_EN, PIN_M3_PWM_B_POS, PIN_M3_PWM_B_NEG, PIN_MOTOR_PWMAB
     );
+	encoder->set_crc_enabled(ENABLE_ENCODER_CRC);
     joints[2] = new RobotJoint(encoder, motor_driver, MOTOR3_POLE_PAIRS);
   }
 
@@ -540,11 +543,14 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     spin_lock_unsafe_blocking(joints_spin_lock);
     for(int i=0; i<NUM_JOINTS; i++) {
       float angle = joints[i]->encoder->read_abs_angle()*Constants::RAD2DEG;
+      int32_t crc_errors = joints[i]->encoder->is_crc_enabled() ? joints[i]->encoder->get_crc_error_count(false) : -1;
 
       reply += std::string("Joint ") + std::to_string(i)+":";
       reply += std::string("  is_homed=") + std::to_string(joints[i]->is_homed);
-      reply += std::string("  is_calibrated=") + std::to_string(joints[i]->is_calibrated);
-      reply += std::string("  encoder_angle=") + std::to_string(angle) + " deg\n";
+      reply += std::string(",  is_calibrated=") + std::to_string(joints[i]->is_calibrated);
+      reply += std::string(",  encoder_angle=") + std::to_string(angle) + " deg";
+      reply += std::string(",  crc_errors=") + std::to_string(crc_errors); 
+      reply += std::string(",  enc_status=") + std::to_string(joints[i]->encoder->get_status()) + "\n"; 
     }
     spin_unlock_unsafe(joints_spin_lock);
 

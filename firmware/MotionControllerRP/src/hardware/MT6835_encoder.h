@@ -142,7 +142,7 @@ class MT6835Encoder {
       static void setup_spi(spi_inst_t* spi, uint pin_sck, uint pin_mosi, uint pin_miso, int32_t baudrate_hz);
 
       // Constructor: pass SPI instance (spi0 or spi1), CS pin
-      MT6835Encoder(spi_inst_t *spi, uint cs_pin);
+      MT6835Encoder(spi_inst_t *spi, int32_t cs_pin);
       virtual ~MT6835Encoder();
 
       bool init(uint8_t bandwidth=0x5, uint8_t hysteresis=0x4);
@@ -192,6 +192,9 @@ class MT6835Encoder {
       void set_options4(MT6835Options4 opts);
 
       uint8_t get_status();
+      void set_crc_enabled(bool enable);
+      bool is_crc_enabled();
+      uint32_t get_crc_error_count(bool reset=false);
 
       uint8_t get_calibration_status();
 
@@ -203,9 +206,10 @@ class MT6835Encoder {
   private:
       bool initialized=false;
       spi_inst_t *spi;
-      uint cs_pin;
+      int32_t cs_pin;
       uint8_t last_status = 0;
       uint8_t last_crc = 0;
+      uint32_t crc_error_count = 0;
 
       int32_t last_raw_angle = 0;
       AbsRawAngleType abs_raw_angle = 0;

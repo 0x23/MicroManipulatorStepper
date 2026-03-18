@@ -24,6 +24,10 @@ constexpr float ENCODER_MAGNET_PITCH = 3.0f;    // [mm]
 constexpr float ENCODER_MAGNET_RADIUS = 30.0f;  // [mm]
 constexpr float ENCODER_ANGLE_TO_ROTOR_ANGLE = (ENCODER_MAGNET_PITCH*2.0f) / 
                                                (ENCODER_MAGNET_RADIUS * Constants::TWO_PI_F);
+											   
+// enables error checking for encoders (slow) - useful for debugging
+// Note: some chips seem to return always a crc of 0 producing massiv false errors       
+constexpr bool ENABLE_ENCODER_CRC = false;
 
 //--- HOMING ------------------------------------------------------------------
 

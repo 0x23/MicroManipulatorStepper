@@ -13,7 +13,6 @@
 
 #include "actuator_calibration.h"
 
-
 //*** FUNCTION ***********************************************************************************/
 
 bool measure_calibration_data(
@@ -39,18 +38,24 @@ bool measure_calibration_data(
   float start_field_angle = motor_driver.get_field_angle();
   float field_angle_step = calibration_range*pole_pair_count/(sample_count-1);
 
+  auto& encoder = servo_controller.get_encoder();
+  
+  encoder.get_crc_error_count(true); // reset crc error count
+  bool was_crc_enabled = encoder.is_crc_enabled();
+  encoder.set_crc_enabled(true);
+
   auto run_measurement = [&](int sample_count, float field_angle_step, int& weak_field_measurements) {
     // Measure in increasing direction
     for (size_t i = 0; i < sample_count; ++i) {
       if(i>0)
         motor_driver.rotate_field(field_angle_step, field_velocity, nullptr);
 
-      float encoder_angle_raw = servo_controller.get_encoder().read_abs_angle_raw();
+      float encoder_angle_raw = encoder.read_abs_angle_raw();
       float field_angle = motor_driver.get_field_angle();
       float motor_pos = (field_angle-start_field_angle)/pole_pair_count;
       // TODO: read motor_pos from precise reference encoder
   
-      if(servo_controller.get_encoder().get_status() & MT6835_STATUS_WEAKFIELD)
+      if(encoder.get_status() & MT6835_STATUS_WEAKFIELD)
         weak_field_measurements++;
  
       if(print_measurements)
@@ -73,6 +78,14 @@ bool measure_calibration_data(
     Constants::TWO_PI_F*40.0f, [&servo_controller]() {
       servo_controller.get_encoder().read_abs_angle_raw();
   });
+  
+  encoder.set_crc_enabled(was_crc_enabled);
+
+  uint32_t encorder_crc_errors = encoder.get_crc_error_count(false);
+  if(encorder_crc_errors > 0) {
+    LOG_WARNING("Data error (CRC) in %i of %i measurements", encorder_crc_errors, sample_count);
+    // return false;
+  }
 
   if(weak_field_measurements > 0) {
     LOG_ERROR("Magnetic field too weak for %i of %i measurements", weak_field_measurements, sample_count);

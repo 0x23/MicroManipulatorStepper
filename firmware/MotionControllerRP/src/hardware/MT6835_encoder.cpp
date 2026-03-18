@@ -22,7 +22,7 @@ void MT6835Encoder::setup_spi(spi_inst_t* spi, uint pin_sck, uint pin_mosi, uint
   sleep_ms(10);
 }
 
-MT6835Encoder::MT6835Encoder(spi_inst_t* spi, uint cs_pin) : spi(spi), cs_pin(cs_pin) {
+MT6835Encoder::MT6835Encoder(spi_inst_t* spi, int32_t cs_pin) : spi(spi), cs_pin(cs_pin) {
   if (cs_pin >= 0) {
       gpio_init(cs_pin);
       gpio_set_dir(cs_pin, GPIO_OUT);
@@ -46,6 +46,7 @@ bool MT6835Encoder::init(uint8_t bandwidth, uint8_t hysteresis) {
 
   last_raw_angle = 0;
   abs_raw_angle = 0;
+  crc_error_count = 0;
   initialized = true;
 
   return true;
@@ -99,7 +100,9 @@ MT6835Encoder::AbsRawAngleType MT6835Encoder::read_abs_angle_raw() {
   if (check_crc) {
       if (last_crc != calc_crc(raw_angle, last_status)) {
           last_status |= MT6835_CRC_ERROR;
-          return -1.0f; // CRC error indicator
+          crc_error_count++;
+          // LOG_ERROR("chip_crc: %i - calc_crc: %i", last_crc, calc_crc(raw_angle, last_status));
+     //     return -1.0f; // CRC error indicator
       }
   }
 
@@ -120,6 +123,21 @@ int32_t MT6835Encoder::get_rawcounts_per_rev() {
 
 uint8_t MT6835Encoder::get_status() {
     return last_status;
+}
+
+void MT6835Encoder::set_crc_enabled(bool enable) {
+  check_crc = enable;
+}
+
+bool MT6835Encoder::is_crc_enabled() {
+  return check_crc;
+}
+
+uint32_t MT6835Encoder::get_crc_error_count(bool reset) {
+  uint32_t result = crc_error_count;
+  if(reset)
+    crc_error_count = 0;
+  return result;
 }
 
 uint8_t MT6835Encoder::get_calibration_status() {
@@ -337,7 +355,7 @@ uint8_t MT6835Encoder::calc_crc(uint32_t angle, uint8_t status) {
     uint8_t crc = 0x00;
     uint8_t input;
 
-    input = angle >> 13;
+    input = (angle >> 13) & 0xFF;
     crc ^= input;
     for (int k = 8; k > 0; k--)
         crc = (crc & 0x80) ? (crc << 1) ^ 0x07 : crc << 1;
@@ -347,7 +365,7 @@ uint8_t MT6835Encoder::calc_crc(uint32_t angle, uint8_t status) {
     for (int k = 8; k > 0; k--)
         crc = (crc & 0x80) ? (crc << 1) ^ 0x07 : crc << 1;
 
-    input = ((angle << 3) & 0xFF) | (status & 0x07);
+    input = ((angle & 0x1F) << 3) | (status & 0x07);
     crc ^= input;
     for (int k = 8; k > 0; k--)
         crc = (crc & 0x80) ? (crc << 1) ^ 0x07 : crc << 1;
