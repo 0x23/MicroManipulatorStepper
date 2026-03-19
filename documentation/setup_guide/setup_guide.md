@@ -19,6 +19,10 @@ This guide walks you through the setup of your new **Open Micro-Manipulator** de
    During the homing command (`G28`), the end effector should move toward the base.  
    If it moves in the opposite direction, rewire the motor to reverse its direction.
 
+   <div style="display: flex;">
+       <img src="homing_direction.jpg" alt="Mechanical Limit Pin" width="30%">
+   </div>
+
 
 ## Calibration and Checking the Encoders
 
