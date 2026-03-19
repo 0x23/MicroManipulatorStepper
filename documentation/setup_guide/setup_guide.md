@@ -8,7 +8,7 @@ This guide walks you through the setup of your new **Open Micro-Manipulator** de
    This pin is required for proper homing of the device.
 
     <div style="display: flex;">
-        <img src="mechanical_limit_pin.jpg" alt="Mechanical Limit Pin" width="30%">
+        <img src="mechanical_limit_pin.jpg" alt="Mechanical Limit Pin" width="40%">
     </div>
 
 
@@ -20,7 +20,7 @@ This guide walks you through the setup of your new **Open Micro-Manipulator** de
    If it moves in the opposite direction, rewire the motor to reverse its direction.
 
    <div style="display: flex;">
-       <img src="homing_direction.jpg" alt="Mechanical Limit Pin" width="30%">
+       <img src="homing_direction.jpg" alt="Mechanical Limit Pin" width="40%">
    </div>
 
 
