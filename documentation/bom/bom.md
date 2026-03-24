@@ -25,13 +25,42 @@
 | 4 Pin Header | 4 | 2.5 mm pitch |  | |
 | 8 Pin Header | 1 | 2.0 mm pitch |  | |
 | NEMA 17 Stepper Motor | 3 | Body ≤ 38 mm | Body length <= 38mm | |
+## PCBs
 
+| Name                | Qty | Description | Comments | Image |
+| ------------------- | --- | ----------- | -------- | ----- |
+| Control Board       | 1   |             |          |       |
+| balljoint_plate_pcb | 6   |             |          |       |
+## 3D Printing - Machine
+
+| Name                | Qty | Description | Comments                                                        | Image                                              |
+| ------------------- | --- | ----------- | --------------------------------------------------------------- | -------------------------------------------------- |
+| Motor Horn          | 3   |             | 0.4 mm+ nozzle may require post-processing                      | ![Motor Horn](images/MotorHorn.png)                |
+| RubberBandCollet    | 12  |             | 0.4 mm nozzle, 0.1mm Layer height + may require post-processing | ![Rubber Band Collet](images/RubberBandCollet.png) |
+| Motor Mount         | 3   |             |                                                                 | ![Motor Mount](images/MotorMount.png)              |
+| End Effector        | 1   |             |                                                                 | ![End Effector](images/EndEffector.png)            |
+| Base Block          | 1   |             |                                                                 | ![Base Block](images/BaseBlock.png)                |
+
+# Tool - Rod Sharpener
 ## 3D Printing
-| Name | Qty | Description | Comments | Image |
-|------|-----|-------------|----------|-------|
-| Motor Horn | 3 |  | 0.4 mm+ nozzle may require post-processing | ![Motor Horn](images/MotorHorn.png)|
-| RubberBandCollet | 12 |  | 0.4 mm nozzle, 0.1mm Layer height + may require post-processing | ![Rubber Band Collet](images/RubberBandCollet.png)|
-| BallJointMount | 6 |  | 0.4 mm nozzle, 0.1mm Layer height + may require post-processing | ![Ball Joint Mount](images/BallJointMount.png)|
-| Motor Mount | 3 |  |  | ![Motor Mount](images/MotorMount.png)|
-| End Effector | 1 |  |  | ![End Effector](images/EndEffector.png)|
-| Base Block | 1 |  |  | ![Base Block](images/BaseBlock.png)|
+
+| Name          | Qty | Description | Comments | Image |
+| ------------- | --- | ----------- | -------- | ----- |
+| Rod Guide     | 1   |             |          |       |
+| Blade Carrier | 1   |             |          |       |
+
+# Tool - Rod Length Setting Press
+
+## PCBs
+| Name                    | Qty | Description | Comments | Image |
+| ----------------------- | --- | ----------- | -------- | ----- |
+| ball_alignment_disc_pcb | 1   |             |          |       |
+## 3D Printing 
+
+| Name                    | Qty | Description | Comments | Image |
+| ----------------------- | --- | ----------- | -------- | ----- |
+| RodGrindingJigA         | 1   |             |          |       |
+| RodGrindingJigB         | 1   |             |          |       |
+| RodGuide                | 1   |             |          |       |
+| RodCollet               | 2   |             |          |       |
+| CaliperClamp            | 2   |             |          |       |
