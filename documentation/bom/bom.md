@@ -1,16 +1,22 @@
 # Bill of Materials (BOM)
 
 ## Mechanics
+
 | Name | Qty | Description | Comments | Suggested link | Image |
 |------|-----|-------------|----------|----------------|-------|
-| Steel ball | 12 | Ø1.25 mm (0.05") | Precision G10 or better. Can be sourced from small ball bearings | |
+| Steel ball | 12 | Ø1 mm (0.04") | Precision G10 or better. Can be sourced from small ball bearings | |
 | PU stretch cord | 1 m | Ø1mm | e.g. "Stretch Magic" or "Magic String" | [Aliexpress](https://www.aliexpress.us/item/3256805953910514.html)| ![Pu strech cord](images/PU_StretchCord.png)|
 | Neodym Cylinder Magnet | 70 | Ø3mm h=5 mm | N52 Grade | [Ebay Link]()|
 | Brass Pipe | 1 m | OD=Ø2mm ID=Ø1 mm |  | [Amazon](https://a.co/d/1pRFmtf)| ![Brass Pipe](images/BrassPipe.png)|
-| M2 Screw | 12 | M2×12 mm, Countersunk |  | |
-| M3 Grub Screw | 6 | M3×4 |  | |
+| M2-8 dowel     | 9   |             |          |                |       |
+| SHCS M2-8      | 9   |             |          |                |       |
+| Set Screw M3-6 | 3   |             |          |                |       |
+| FHCS M3-6      | 3   |             |          |                |       |
+| FHCS M3-10     | 9   |             |          |                |       |
+| FHCS M3-20     | 12  |             |          |                |       |
 
 ## Electronics
+
 | Name | Qty | Description | Comments | Suggested link | Image |
 |------|-----|-------------|----------|----------------|-------|
 | DC-DC Step Down Module | 1 | 4.75–23 V Step-Down Buck Converter |  | [Aliexpress](https://www.aliexpress.us/item/3256806752772875.html)| ![DC-DC Step Down](images/DC_DC-StepDown.png)|
@@ -25,13 +31,15 @@
 | 4 Pin Header | 4 | 2.5 mm pitch |  | |
 | 8 Pin Header | 1 | 2.0 mm pitch |  | |
 | NEMA 17 Stepper Motor | 3 | Body ≤ 38 mm | Body length <= 38mm | |
+
 ## PCBs
 
 | Name                | Qty | Description | Comments | Image |
 | ------------------- | --- | ----------- | -------- | ----- |
 | Control Board       | 1   |             |          |       |
 | balljoint_plate_pcb | 6   |             |          |       |
-## 3D Printing - Machine
+
+## 3D Printing
 
 | Name                | Qty | Description | Comments                                                        | Image                                              |
 | ------------------- | --- | ----------- | --------------------------------------------------------------- | -------------------------------------------------- |
@@ -42,6 +50,7 @@
 | Base Block          | 1   |             |                                                                 | ![Base Block](images/BaseBlock.png)                |
 
 # Tool - Rod Sharpener
+
 ## 3D Printing
 
 | Name          | Qty | Description | Comments | Image |
@@ -52,9 +61,11 @@
 # Tool - Rod Length Setting Press
 
 ## PCBs
+
 | Name                    | Qty | Description | Comments | Image |
 | ----------------------- | --- | ----------- | -------- | ----- |
 | ball_alignment_disc_pcb | 1   |             |          |       |
+
 ## 3D Printing 
 
 | Name                    | Qty | Description | Comments | Image |
