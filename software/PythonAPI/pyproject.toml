@@ -1,0 +1,62 @@
+[project]
+name = "open_micro_stage_api"
+version = "0.1.0"
+description = "Python API for controlling the Open Micro Stage manipulator"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    {name = "MicroManipulatorStepper Contributors"}
+]
+keywords = ["micromanipulator", "stepper", "stage", "control", "robotics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "numpy",
+    "pyserial",
+    "colorama",
+]
+
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+plotter = [
+    "matplotlib",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff",
+]
+
+[project.urls]
+Homepage = "https://github.com/HonakerM/MicroManipulatorStepper"
+Repository = "https://github.com/HonakerM/MicroManipulatorStepper.git"
+Documentation = "https://github.com/HonakerM/MicroManipulatorStepper"
+Issues = "https://github.com/HonakerM/MicroManipulatorStepper/issues"
+
+[tool.setuptools]
+packages = ["open_micro_stage_api"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
