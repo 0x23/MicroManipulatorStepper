@@ -713,8 +713,10 @@ void Robot::process_set_servo_parameter_command(const GCodeCommand& cmd, std::st
   bool has_all = cmd.has_word('A') && cmd.has_word('B') && cmd.has_word('C') && 
                  cmd.has_word('D') && cmd.has_word('F');
 
-  if(has_all == false)
+  if(has_all == false) {
     reply = "error: not all parameters given (A,B,C,D,F expected)\n";
+    return;
+  }
 
   for(int i=0; i<NUM_JOINTS; i++) {
 
