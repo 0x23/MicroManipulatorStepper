@@ -108,7 +108,7 @@ void HomingController::update() {
   if (fabs(field_angle_offset) > field_angle_search_range) {
     LOG_INFO("End stop not detected");
     search_failed = true;
-    finalize();
+    state = State::Done;
   }
 }
 
