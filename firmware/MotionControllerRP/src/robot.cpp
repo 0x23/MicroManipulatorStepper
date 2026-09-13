@@ -405,11 +405,14 @@ bool Robot::calibrate_joint(int joint_idx, bool store_calibration, bool print_me
   bool calibration_ok = joint->calibrate(print_measurements);
   if(!calibration_ok) {
     spin_unlock_unsafe(joints_spin_lock);
+    enable_servo_control(true);
     return false;
   }
 
   // joint->servo_controller->move_to_open_loop(0.05f, 1.0);
+  spin_lock_unsafe_blocking(shared_data.lock);
   shared_data.joint_target_positions[joint_idx] = 0; // joint->servo_controller->read_position();
+  spin_unlock_unsafe(shared_data.lock);
 
   if(store_calibration)
     joint->store_calibration();
