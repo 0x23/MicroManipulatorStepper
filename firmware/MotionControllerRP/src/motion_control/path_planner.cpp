@@ -149,8 +149,10 @@ void PathPlanner::run_look_ahead_planning() {
     float max_junction_velocity_angular = 1e10;
 
     // compute max velocity delta
-    float v_start_max_linear = std::sqrt(std::max(0.0f, powf(s1->end_velocity.linear, 2.0f) + 2 * s1->max_acceleration.linear * s1->travel_distance.linear));
-    float v_start_max_angular = std::sqrt(std::max(0.0f, powf(s1->end_velocity.angular, 2.0f) + 2 * s1->max_acceleration.angular * s1->travel_distance.angular));
+    // In the reverse pass the junction is the start of s2, so the limit comes
+    // from s2's ability to decelerate to its already resolved end velocity.
+    float v_start_max_linear = std::sqrt(std::max(0.0f, powf(s2->end_velocity.linear, 2.0f) + 2 * s2->max_acceleration.linear * s2->travel_distance.linear));
+    float v_start_max_angular = std::sqrt(std::max(0.0f, powf(s2->end_velocity.angular, 2.0f) + 2 * s2->max_acceleration.angular * s2->travel_distance.angular));
 
     // compute final junction velocity
     LinearAngular junction_velocity;
