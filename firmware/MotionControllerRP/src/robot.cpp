@@ -54,9 +54,14 @@ Robot::Robot(float path_segment_time_step) :
   current_feedrate = LinearAngular(10.0f, 1.0f);
   max_acceleration = LinearAngular(500.0f, 50.0f);
   path_buffering_time_us = 50*1e3;
+  path_buffering_start_time = 0;
+  all_joints_ready = false;
+  last_mc_update_time = 0;
 
-  for(int i=0; i<NUM_TOOLS; i++)
+  for(int i=0; i<NUM_TOOLS; i++) {
     robot_tools[i] = nullptr;
+    current_tool_outputs[i] = 0.0f;
+  }
 
   state = ERobotState::IDLE;
 }
