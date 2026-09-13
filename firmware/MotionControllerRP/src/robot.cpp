@@ -583,7 +583,12 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
   // print lookup table
   if(cmd.get_command() == "M59") {
     int idx = (int)cmd.get_value('J', 0);
+    if(idx < 0 || idx >= NUM_JOINTS) {
+      reply = "error: joint index out of range\n";
+      return;
+    }
     joints[idx]->servo_controller->get_enc_to_pos_lut().print_to_log();
+    reply = "ok\n";
     return;
   }
 
@@ -594,6 +599,9 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     reply += "ok\n";
     return;
   }
+
+  // unknown machine command, always send a reply so the host does not wait forever
+  reply = "error: unknown machine command\n";
 }
 
 void Robot::process_motion_command(const GCodeCommand& cmd, std::string& reply) {
