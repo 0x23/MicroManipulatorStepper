@@ -57,7 +57,7 @@ bool RobotJoint::calibrate(bool print_measurements) {
   bool homing_ok = homing_controller.run_blocking(servo_controller, -HOMING_VELOCITY, 
                                                   360.0f*DEG_TO_RAD, HOMING_CURRENT,
                                                   ENCODER_ANGLE_TO_ROTOR_ANGLE,
-                                                  0.0f);
+                                                  CALIBRATION_RETRACT_ANGLE*DEG_TO_RAD);
   if(homing_ok == false) {
     LOG_ERROR("Joint-%i: Calibration failed due to unsuccessful homing sequence", joint_idx);
     return false;
