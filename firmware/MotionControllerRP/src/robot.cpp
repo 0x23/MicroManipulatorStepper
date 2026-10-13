@@ -54,9 +54,14 @@ Robot::Robot(float path_segment_time_step) :
   current_feedrate = LinearAngular(10.0f, 1.0f);
   max_acceleration = LinearAngular(500.0f, 50.0f);
   path_buffering_time_us = 50*1e3;
+  path_buffering_start_time = 0;
+  all_joints_ready = false;
+  last_mc_update_time = 0;
 
-  for(int i=0; i<NUM_TOOLS; i++)
+  for(int i=0; i<NUM_TOOLS; i++) {
     robot_tools[i] = nullptr;
+    current_tool_outputs[i] = 0.0f;
+  }
 
   state = ERobotState::IDLE;
 }
@@ -400,11 +405,14 @@ bool Robot::calibrate_joint(int joint_idx, bool store_calibration, bool print_me
   bool calibration_ok = joint->calibrate(print_measurements);
   if(!calibration_ok) {
     spin_unlock_unsafe(joints_spin_lock);
+    enable_servo_control(true);
     return false;
   }
 
   // joint->servo_controller->move_to_open_loop(0.05f, 1.0);
+  spin_lock_unsafe_blocking(shared_data.lock);
   shared_data.joint_target_positions[joint_idx] = 0; // joint->servo_controller->read_position();
+  spin_unlock_unsafe(shared_data.lock);
 
   if(store_calibration)
     joint->store_calibration();
@@ -578,7 +586,12 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
   // print lookup table
   if(cmd.get_command() == "M59") {
     int idx = (int)cmd.get_value('J', 0);
+    if(idx < 0 || idx >= NUM_JOINTS) {
+      reply = "error: joint index out of range\n";
+      return;
+    }
     joints[idx]->servo_controller->get_enc_to_pos_lut().print_to_log();
+    reply = "ok\n";
     return;
   }
 
@@ -589,6 +602,9 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     reply += "ok\n";
     return;
   }
+
+  // unknown machine command, always send a reply so the host does not wait forever
+  reply = "error: unknown machine command\n";
 }
 
 void Robot::process_motion_command(const GCodeCommand& cmd, std::string& reply) {
@@ -708,8 +724,10 @@ void Robot::process_set_servo_parameter_command(const GCodeCommand& cmd, std::st
   bool has_all = cmd.has_word('A') && cmd.has_word('B') && cmd.has_word('C') && 
                  cmd.has_word('D') && cmd.has_word('F');
 
-  if(has_all == false)
+  if(has_all == false) {
     reply = "error: not all parameters given (A,B,C,D,F expected)\n";
+    return;
+  }
 
   for(int i=0; i<NUM_JOINTS; i++) {
 
