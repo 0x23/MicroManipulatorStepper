@@ -28,7 +28,7 @@ join the project's community [Discord Server](https://discord.gg/maRvMVpa2Q).
 1. Read this Document and watch the linked videos
 2. Get the parts listed in [Bill of Materials](documentation/bom/bom.md)
 3. Order the PCBs: [all production files](construction/v4_PCB_zip) (e.g. [JLCPCB](https://jlcpcb.com))
-4. 3D print the parts: [all printable files](construction/v4_3dprinting_stl). (your own printer or e.g. [JLCPCB](https://jlcpcb.com))
+4. 3D print the parts: [all printable files](construction/v4_3dprinting_stl) (your own printer or e.g. [JLCPCB](https://jlcpcb.com))
 5. Build the device and electronics
 6. Change the hardware configuration according to your build [hw_config.h](firmware/MotionControllerRP/src/hw_config.h)
 7. Upload firmware using VSCode with PlatformIO plugin
