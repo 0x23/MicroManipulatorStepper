@@ -186,7 +186,7 @@ The repository also contains the fabrication files (Gerber + drill, zipped) that
 | ----- | --- | ------ | --- |
 | Control board | [PrecisionStepperController3X_v1.3.zip](construction/v4_PCB_zip/PrecisionStepperController3X_v1.3.zip) | [electronics/control_board](electronics/control_board) | 1 |
 | Ball joint plate | [balljoint_plate_pcb_jlcpcb.zip](construction/v4_PCB_zip/balljoint_plate_pcb_jlcpcb.zip) | [balljoint_plate_pcb](construction/micro_manipulator/balljoint_plate_pcb) | 6 |
-| Encoder board | [EncoderBoard.zip](construction/v4_PCB_zip/EncoderBoard.zip) | [electronics/EncoderBoard.kicad_pcb](electronics/EncoderBoard.kicad_pcb) | TBD |
+| Encoder board | [EncoderBoard.zip](construction/v4_PCB_zip/EncoderBoard.zip) | [electronics/EncoderBoard.kicad_pcb](electronics/EncoderBoard.kicad_pcb) | 1 |
 | Ball alignment disc (rod length setting press tool) | [ball_alignment_disc_pcb.zip](construction/v4_PCB_zip/ball_alignment_disc_pcb.zip) | [ball_alignment_disc_pcb](construction/tools/rod_embossing_tools/ball_alignment_disc_pcb) | 1 |
 
 ## ⚙ Firmware
