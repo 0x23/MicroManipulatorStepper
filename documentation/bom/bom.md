@@ -2,6 +2,8 @@
 
 Printable parts link directly to their `.stl` file and PCBs to their production `.zip` (Gerber + drill files, ready to upload to a PCB manufacturer).
 
+Both the PCBs and the 3D-printed parts can be ordered from [JLCPCB](https://jlcpcb.com), e.g. if you don't have a 3D printer.
+
 ## Mechanics
 
 | Name | Qty | Description | Comments | Suggested link | Image |
