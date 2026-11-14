@@ -24,7 +24,7 @@ class PathPlanner {
     static constexpr int JS_QUEUE_SIZE = 32;
     
   public:
-    PathPlanner(IKinematicModel* kinematic_model, float time_step);
+    PathPlanner(IKinematicModel* kinematic_model, float time_step, LinearAngular junction_deviation);
     ~PathPlanner();
 
     // sets the kinematic model for foreward and inverse kinematic calculations

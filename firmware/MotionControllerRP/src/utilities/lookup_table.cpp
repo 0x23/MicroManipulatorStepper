@@ -160,9 +160,11 @@ bool LookupTable::optimize_lut(std::vector<std::pair<float, float>> in_out_pairs
   // Gradient descent loop
   std::vector<float> gradients(N, 0.0f);
   float total_loss = 0.0f;
+  float total_loss_div = 0.0f;
   for (int iter = 0; iter < max_iterations; iter++) {
     // Accumulate gradients for each pair
     total_loss = 0.0f;
+	total_loss_div = 0.0f;
     for (const auto &pair : in_out_pairs) {
       float x = pair.first;
       float y_target = pair.second;
@@ -177,6 +179,7 @@ bool LookupTable::optimize_lut(std::vector<std::pair<float, float>> in_out_pairs
       float error = y_pred - y_target;
 
       total_loss += error * error;
+	  total_loss_div += 1.0f;
 
       // Gradient of loss wrt y_pred = 2 * error
       float grad_loss = 2.0f * error;
@@ -196,10 +199,10 @@ bool LookupTable::optimize_lut(std::vector<std::pair<float, float>> in_out_pairs
     }
 
     //if(iter%100 == 0)
-    //  LOG_DEBUG("iteration %04i: rms=%f", iter, sqrtf(total_loss));
+    //  LOG_DEBUG("iteration %04i: rms=%f", iter, sqrtf(total_loss/std::max(total_loss_div, 1e-7f)));
   }
 
-  rms_error = sqrt(total_loss);
+  rms_error = sqrt(total_loss/std::max(total_loss_div, 1e-7f));
   LOG_DEBUG("Optimizing lookup table finished: rms_error=%f", rms_error);
 
   return true;

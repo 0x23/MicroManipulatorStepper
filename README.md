@@ -12,9 +12,9 @@ Check out the YouTube video for more information about the device and how it is 
 </div>
 
 Thanks to its parallel kinematic structure and miniature ball joints, it achieves good mechanical stiffness and a large range of motion.
-The motors are off the shelf stepper motors dr​iven by a 30 kHz closed loop controller and a very precise PWM signal.
+The motors are off the shelf stepper motors driven by a 30 kHz closed loop controller and a very precise PWM signal.
 A 'magnetic gearing' approach increases the resolution of the low-cost magnetic rotary encoders by a factor of 30 allowing for steps down to 50nm
-(**Please mind the difference between resolution and accuracy**. The absolute accuracy is significantly worse.
+(**Please mind the difference between resolution and accuracy**. The absolute accuracy is significantly worse.)
 
 The device can be controlled via simple G-Code commands over a USB serial interface and is thus easily integrated into other projects.
 The firmware implements a complete motion planning stack with look-ahead for smooth and accurate path following capabilities.
@@ -23,39 +23,39 @@ The firmware implements a complete motion planning stack with look-ahead for smo
 
 Below is a list of high level steps you can follow if you want to replicate the project. 
 If you have questions or problems with the build or just want to discuss subjects related to the project, 
-joint the projects community [Discord Server](https://discord.gg/maRvMVpa2Q).
+join the project's community [Discord Server](https://discord.gg/maRvMVpa2Q).
 
 1. Read this Document and watch the linked videos
 2. Get the parts listed in [Bill of Materials](documentation/bom/bom.md)
-3. Build the device and electronics
-4. Change the hardware configuration according to your build [hw_config.h](firmware/MotionControllerRP/src/hw_config.h)
-5. Upload firmware using VSCode with PlattformIO plugin
-6. Calibrate axis
+3. Order the PCBs: [all production files](construction/v4_PCB_zip) (e.g. [JLCPCB](https://jlcpcb.com))
+4. 3D print the parts: [all printable files](construction/v4_3dprinting_stl) (your own printer or e.g. [JLCPCB](https://jlcpcb.com))
+5. Build the device and electronics
+6. Change the hardware configuration according to your build [hw_config.h](firmware/MotionControllerRP/src/hw_config.h)
+7. Upload firmware using VSCode with PlatformIO plugin
+8. Calibrate axis
 
 Also check out the setup guide for new devices: [Setup Guide](documentation/setup_guide/setup_guide.md)
 
-## ✨NEW: Hardware Version 4.0
-A new version of the hardware has been released, fixing several issues with the previous design:
+## Hardware Version 4.0
+The current hardware version is 4.0. It fixes several issues of the previous design (v3.0):
 
 - Self collision during homing fixed.
-- Connection of ball joint block with screws only was not well constrained and could rotated a bit.
+- Connection of ball joint block with screws only was not well constrained and could rotate a bit.
 - No reliable way to ensure consistent linkage rod length
 - Unnecessary ball joint friction
-- Accurate ball position heavily dependet on print quality and corner rounding
+- Accurate ball position heavily dependent on print quality and corner rounding
 - Rubber bands could not be changed or removed once glued in.
 
-A video about the improved ball joint and linkage manufactoring process can be found on YouTube: [Better Ball Joints for the Open Micro-Manipulator](https://www.youtube.com/watch?v=NM2KXvRGmpg)
+A video about the improved ball joint and linkage manufacturing process can be found on YouTube: [Better Ball Joints for the Open Micro-Manipulator](https://www.youtube.com/watch?v=NM2KXvRGmpg)
 Also the FreeCAD model was restructured and improved and now includes all pins and fasteners. It now provides a reference for all required mechanical parts. 
 
 <div style="display: flex;">
     <img src="images/Hardware-v4.0.jpg" alt="Open Micro-Manipulator GUI" width="50%">
 </div>
 
-WARNING: BOM is not updated yet...
-
 ## Open Micro-Manipulator GUI
 To make testing and using the Open-Micro Manipulator easy and convenient a python control program with a graphical user interface is provided here: [Open Micro-Manipulator GUI](https://github.com/0x23/OpenMicroManipulatorGUI).
-It has simple controlls to move the device around, while also displaying a live camera feed (e.g. from a microscope camera). Additional features, include a simple g-code runner and realtime mouse control (e.g. for Biology applications).
+It has simple controls to move the device around, while also displaying a live camera feed (e.g. from a microscope camera). Additional features, include a simple g-code runner and realtime mouse control (e.g. for Biology applications).
 
 <div style="display: flex;">
     <img src="images/grain_manipulation_2.jpg" alt="Open Micro-Manipulator GUI" width="50%">
@@ -121,8 +121,8 @@ Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new
      G4 S0.001   // dwell command (or any other motion command) - necessary to apply the tools output
    ```
    
-- **Calibration**: Calibration has now some addition error checks to improve error reporting of potential problems like encoder alignment.
-- **Kinematic Model Parameter**: Initialization code has been cleaned up and better comments where added to the parameters. Parameters are preset for HW v4.0 but you can toggle back to the old HW-v3.0 parameters if necessary.
+- **Calibration**: Calibration has now some additional error checks to improve error reporting of potential problems like encoder alignment.
+- **Kinematic Model Parameter**: Initialization code has been cleaned up and better comments were added to the parameters. Parameters are preset for HW v4.0 but you can toggle back to the old HW-v3.0 parameters if necessary.
 - **Bugfixes**: smaller bugfixes
 
 IMPORTANT: If you have **Hardware Version v3.0** you need to switch back to the old kinematic parameters in the [kinematic_model_delta3d.cpp](firmware/MotionControllerRP/src/kinematic_models/kinematic_model_delta3d.cpp) file (there is an #define for that at the top).
@@ -161,16 +161,16 @@ You can also 3D-Print the parts but have to live with thermal drift (carbon fill
 The CAD files can be found here: [CAD Models](construction).
 Please note that FreeCAD version **1.2.0dev** was used, and the files might not work with older versions.
 
-STL files for printing can be found here: [STL Files](construction/STL_3D_Printing/)
+STL files for printing can be found here: [STL Files](construction/v4_3dprinting_stl/)
 
 ## ⚙ Kinematic Model
 
-The kinematic model is defined here: [kinematic_model_delta3d.cpp](firmware/MotionControllerRP/src/kinemtaic_models/kinematic_model_delta3d.cpp).
+The kinematic model is defined here: [kinematic_model_delta3d.cpp](firmware/MotionControllerRP/src/kinematic_models/kinematic_model_delta3d.cpp).
 Please check the dimensions of your build against the values set in the constructor. In particular, make sure the arm length matches.
 
 ## ⚙ Electronics
 
-IMPORTANT: If you fabricated PCB version v1.2 (see version label on the board) you need to drill out a misplaced via on diode D1 that shorts 5V rail to ground (See [repair image](electronics/pcb_v1.2_fix.jpg) ). The problem was fixed in v1.3.
+IMPORTANT: If you fabricated PCB version v1.2 (see version label on the board) you need to drill out a misplaced via on diode D1 that shorts 5V rail to ground (See [repair image](electronics/control_board/pcb_v1.2_fix.jpg) ). The problem was fixed in v1.3.
 
 The electronics are designed in **KiCAD** and only commonly available modules (motor drivers and MCU boards) are used and connected by a simple PCB. No SMD soldering is required to populate the board to make the build extra accessible.
 For usual winding resistance of your motors, the device should be powered by $${\color{lightgreen} 5V-6V }$$ (2A) to keep current and heating to a reasonable level.
@@ -180,7 +180,14 @@ For usual winding resistance of your motors, the device should be powered by $${
   <img src="images/ControllerPCB.jpg" alt="Image 2" style="flex: 1; object-fit: contain; height: 10vw;">
 </div>
 
-The repository now also contains the fabrication files that can be directly uploaded to the PCB manufacturer.
+The repository also contains the fabrication files (Gerber + drill, zipped) that can be uploaded directly to a PCB manufacturer. All of them are collected in [construction/v4_PCB_zip](construction/v4_PCB_zip):
+
+| Board | Zip | Source | Qty (see [BOM](documentation/bom/bom.md)) |
+| ----- | --- | ------ | --- |
+| Control board | [PrecisionStepperController3X_v1.3.zip](construction/v4_PCB_zip/PrecisionStepperController3X_v1.3.zip) | [electronics/control_board](electronics/control_board) | 1 |
+| Ball joint plate | [balljoint_plate_pcb_jlcpcb.zip](construction/v4_PCB_zip/balljoint_plate_pcb_jlcpcb.zip) | [balljoint_plate_pcb](construction/micro_manipulator/balljoint_plate_pcb) | 6 |
+| Encoder board | [EncoderBoard.zip](construction/v4_PCB_zip/EncoderBoard.zip) | [electronics/EncoderBoard.kicad_pcb](electronics/EncoderBoard.kicad_pcb) | 1 |
+| Ball alignment disc (rod length setting press tool) | [ball_alignment_disc_pcb.zip](construction/v4_PCB_zip/ball_alignment_disc_pcb.zip) | [ball_alignment_disc_pcb](construction/tools/rod_embossing_tools/ball_alignment_disc_pcb) | 1 |
 
 ## ⚙ Firmware
 

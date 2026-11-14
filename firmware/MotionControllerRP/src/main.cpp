@@ -23,7 +23,7 @@
 #include "LittleFS.h"
 
 #include "demo_gcode_generator.h"
-
+ 
 //*** GLOBALS ***************************************************************************
 
 // NeoPixelConnect strip(PIN_BUILTIN_LED, 1);
