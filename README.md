@@ -107,7 +107,11 @@ wait_for_stop(polling_interval_ms, disable_callbacks)
 set_max_acceleration(linear_accel, angular_accel)
 set_servo_parameter(pos_kp, pos_ki, vel_kp, vel_ki, vel_filter_tc)
 ```
-## ✨ Firmware v1.0.4
+## ✨ Firmware v1.0.7
+
+Firmware 1.0.7 includes several bugfixes and minor improvements.
+
+## Firmware v1.0.4
 
 Firmware 1.0.4 comes with many smaller improvements and bugfixes and a great new feature as well:
 
