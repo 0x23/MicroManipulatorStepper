@@ -57,6 +57,13 @@ constexpr float VEL_LOWPASS_TC = 0.004f;
 constexpr float VEL_KP = 0.2f;
 constexpr float VEL_KI = 90.0f;
 
+//--- PATH PLANNING -------------------------------------------------------------
+
+// maximum deviation from the ideal path allowed at junctions between path
+// segments. Higher values allow faster cornering at the cost of accuracy.
+constexpr float JUNCTION_DEVIATION_LINEAR  = 0.0005f; // mm
+constexpr float JUNCTION_DEVIATION_ANGULAR = 0.001f;  // rad
+
 //--- KINEMATIC ---------------------------------------------------------------
 
 // Kinematic Parameters are defined kinematic_modes/kinematic_model_delta3d.cpp

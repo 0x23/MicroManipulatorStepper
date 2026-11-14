@@ -27,14 +27,23 @@ bool MotionController::update(float dt,
 
   // check if end of current path segments end time is exceeded and if so, fetch next one
   bool queue_empty = false;
+  static bool was_empty = false;  // debug: edge-detect underrun so we log only once
   float segment_duration = current_path_segment.get_duration();
   while(current_time > segment_duration) {
     // get next path segment from queue
     queue_empty = !path_planner->pop_js_path_segment(current_path_segment);
     if(queue_empty) {
+      // debug: buffer ran dry. if the rest of the pipeline still has work
+      // (not all_finished) this is a real underrun, not the end of the program.
+      // just count here (runs in the 2kHz ISR); the main loop prints it. doing
+      // serial i/o in the ISR would stall timing and skew the measurement.
+      if(!was_empty && !path_planner->all_finished())
+        underrun_count++;
+      was_empty = true;
       current_time = segment_duration;
       break;
     }
+    was_empty = false;
         
     // update current time and segment duration
     current_time -= segment_duration;

@@ -155,7 +155,7 @@ bool KinematicModel_Delta3D::inverse(const Pose6DF& pose, float* joint_positions
     Vec3F q = intersections[0].x > intersections[1].x ? intersections[0] : intersections[1];
 
     // compute joint angle
-    float angle = -atan2(q.y, q.x);                     // joint angles are cw
+    float angle = -atan2f(q.y, q.x);                    // joint angles are cw
     joint_positions[i] = rotor_angle_offset[i] + angle;
   }
 
@@ -221,49 +221,49 @@ void KinematicModel_Delta3D::test() {
  * @return true if there is at least one intersection point (either one or two),
  *         false if there is no intersection.
  */
-bool circle_sphere_intersection(double r1, const Vec3F& p, double r2, Vec3F intersections[2]) {
-    const double px = p.x;
-    const double py = p.y;
-    const double pz = p.z;
-    const double r2_sq = r2 * r2;
-    const double pz_sq = pz * pz;
+bool circle_sphere_intersection(float r1, const Vec3F& p, float r2, Vec3F intersections[2]) {
+    const float px = p.x;
+    const float py = p.y;
+    const float pz = p.z;
+    const float r2_sq = r2 * r2;
+    const float pz_sq = pz * pz;
 
     // Check if sphere intersects XY-plane and projected radius of sphere-circle in XY
-    const double r_proj_sq = r2_sq - pz_sq;
-    if (r_proj_sq < 0.0f) 
+    const float r_proj_sq = r2_sq - pz_sq;
+    if (r_proj_sq < 0.0f)
       return false;
-    const double r_proj = std::sqrt(r_proj_sq);
+    const float r_proj = std::sqrt(r_proj_sq);
 
     // Distance squared between circle centers
-    const double d_sq = px * px + py * py;
+    const float d_sq = px * px + py * py;
 
     // Check if circles intersect
-    const double sum_r = r1 + r_proj;
-    const double diff_r = std::abs(r1 - r_proj);
+    const float sum_r = r1 + r_proj;
+    const float diff_r = std::fabs(r1 - r_proj);
     if (d_sq > sum_r * sum_r || d_sq < diff_r * diff_r)
       return false;
 
     // Distance between circle centers and its inverse
-    const double d = std::sqrt(d_sq);
-    const double inv_d = 1.0 / d;
+    const float d = std::sqrt(d_sq);
+    const float inv_d = 1.0f / d;
 
     // a = (r1^2 - r2^2 + d^2) / (2d)
-    const double r1_sq = r1 * r1;
-    const double a = (r1_sq - r_proj_sq + d_sq) * 0.5f * inv_d;
+    const float r1_sq = r1 * r1;
+    const float a = (r1_sq - r_proj_sq + d_sq) * 0.5f * inv_d;
 
     // h = sqrt(r1^2 - a^2)
-    const double h_sq = r1_sq - a * a;
-    if (h_sq < 1e-8f) 
+    const float h_sq = r1_sq - a * a;
+    if (h_sq < 1e-8f)
       return false;  // numerical precision issue
-    const double h = std::sqrt(h_sq);
+    const float h = std::sqrt(h_sq);
 
     // Base point (cx2, cy2)
-    const double cx2 = px * (a * inv_d);
-    const double cy2 = py * (a * inv_d);
+    const float cx2 = px * (a * inv_d);
+    const float cy2 = py * (a * inv_d);
 
     // Offset vector
-    const double rx = -py * (h * inv_d);
-    const double ry =  px * (h * inv_d);
+    const float rx = -py * (h * inv_d);
+    const float ry =  px * (h * inv_d);
 
     intersections[0] = Vec3F(cx2 + rx, cy2 + ry, 0.0f);
     intersections[1] = Vec3F(cx2 - rx, cy2 - ry, 0.0f);

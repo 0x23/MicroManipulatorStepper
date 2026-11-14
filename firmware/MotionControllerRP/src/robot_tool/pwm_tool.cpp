@@ -126,6 +126,7 @@ void PwmTool::set_value(float v) {
     // contnuous off state for 0 duty cycle 
     duty--;
 
-    // The PIO program pulls from the TX FIFO
-    pio_sm_put_blocking(pio, state_machine, duty);
+    // Non-blocking, low-latency update for tight synchronization.
+    pio_sm_clear_fifos(pio, state_machine);
+    pio_sm_put(pio, state_machine, duty);
 }

@@ -46,7 +46,7 @@ bool measure_calibration_data(
 
   auto run_measurement = [&](int sample_count, float field_angle_step, int& weak_field_measurements) {
     // Measure in increasing direction
-    for (size_t i = 0; i < sample_count; ++i) {
+    for (int i = 0; i < sample_count; ++i) {
       if(i>0)
         motor_driver.rotate_field(field_angle_step, field_velocity, nullptr);
 

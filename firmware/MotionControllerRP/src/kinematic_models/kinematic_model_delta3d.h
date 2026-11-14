@@ -42,7 +42,7 @@ class KinematicModel_Delta3D : public IKinematicModel {
 
 //*** FUNCTION **************************************************************************
 
-bool circle_sphere_intersection(double r1, const Vec3F& p, double r2, Vec3F intersections[2]);
+bool circle_sphere_intersection(float r1, const Vec3F& p, float r2, Vec3F intersections[2]);
 bool three_sphere_intersection(const Vec3F& p1, float r1,
                                const Vec3F& p2, float r2,
                                const Vec3F& p3, float r3,
