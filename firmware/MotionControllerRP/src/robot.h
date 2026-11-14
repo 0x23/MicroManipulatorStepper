@@ -92,6 +92,7 @@ class Robot : public ICommandProcessor {
     ERobotState state;
     uint32_t path_buffering_time_us;
     uint64_t path_buffering_start_time;
+    uint64_t path_buffer_empty_time;
 
     bool all_joints_ready;
     RobotJoint* volatile joints[NUM_JOINTS];

@@ -120,14 +120,20 @@ class SerialInterface:
         buffer = ""
         while not self._stop_event.is_set():
             try:
-                if self.serial is not None and self.serial.in_waiting:
-                    char = self.serial.read(1).decode('ascii', errors='ignore')
-                    if char in ['\n', '\r']:
-                        if len(buffer) > 0:
-                            self._handle_line(buffer)
-                            buffer = ""
-                    else:
-                        buffer += char
+                waiting = self.serial.in_waiting if self.serial is not None else 0
+                if waiting:
+                    # Drain the whole receive buffer in one read. Reading one byte at a
+                    # time cannot keep up with the device and lets its USB TX buffer back
+                    # up, which blocks the firmware's (core0) serial writes and stalls
+                    # motion. Read everything available and split into lines here.
+                    data = self.serial.read(waiting).decode('ascii', errors='ignore')
+                    for char in data:
+                        if char in ['\n', '\r']:
+                            if len(buffer) > 0:
+                                self._handle_line(buffer)
+                                buffer = ""
+                        else:
+                            buffer += char
                 else:
                     time.sleep(0.001)
             except (serial.SerialException, OSError) as e:
@@ -395,6 +401,7 @@ class OpenMicroStageInterface:
     def move_to(self, x, y, z, f, move_immediately=False, blocking=True, timeout=1):
         """
         Moves the stage to an absolute position with a specified feed rate.
+        The workspace transform is applied.
         :param x: Target X position (in workspace coordinates).
         :param y: Target Y position (in workspace coordinates).
         :param z: Target Z position (in workspace coordinates).
@@ -433,7 +440,7 @@ class OpenMicroStageInterface:
         res, msg = self.serial.send_command(cmd)
         return res
 
-    def wait_for_stop(self, polling_interval_ms=10, disable_callbacks=True):
+    def wait_for_stop(self, polling_interval_ms=50, disable_callbacks=True):
         disable_message_callbacks_prev = self.disable_message_callbacks
         if disable_callbacks: self.disable_message_callbacks = True
 
@@ -444,8 +451,6 @@ class OpenMicroStageInterface:
                 self.disable_message_callbacks = disable_message_callbacks_prev
                 return SerialInterface.ReplyStatus.OK
             time.sleep(polling_interval_ms*0.001)
-
-        self.disable_message_callbacks = disable_message_callbacks_prev
 
     def read_current_position(self, apply_inv_workspace_transform):
         """

@@ -36,7 +36,7 @@ bool startswith(const std::string& str, const std::string& prefix) {
 //--- Robot -----------------------------------------------------------------------------
 
 Robot::Robot(float path_segment_time_step) : 
-  path_planner(nullptr, path_segment_time_step), 
+  path_planner(nullptr, path_segment_time_step, LinearAngular(JUNCTION_DEVIATION_LINEAR, JUNCTION_DEVIATION_ANGULAR)),
   motion_controller(&path_planner),
   servo_loop_frequency_counter(10000),
   motion_controller_frequency_counter(1000),
@@ -55,8 +55,15 @@ Robot::Robot(float path_segment_time_step) :
   max_acceleration = LinearAngular(500.0f, 50.0f);
   path_buffering_time_us = 50*1e3;
 
-  for(int i=0; i<NUM_TOOLS; i++)
+  path_buffering_start_time = 0;
+  all_joints_ready = false;
+  last_mc_update_time = 0;
+
+
+  for(int i=0; i<NUM_TOOLS; i++) {
     robot_tools[i] = nullptr;
+    current_tool_outputs[i] = 0.0f;
+  }
 
   state = ERobotState::IDLE;
 }
@@ -116,10 +123,10 @@ void Robot::init() {
 
   // add tools
   robot_tools[0] = new PwmTool();
-  ((PwmTool*)robot_tools[0])->init(PIN_TOOL1, 8000, 8);
+  ((PwmTool*)robot_tools[0])->init(PIN_TOOL1, 2000, 12);
 
   robot_tools[1] = new PwmTool();
-  ((PwmTool*)robot_tools[1])->init(PIN_TOOL2, 8000, 8);
+  ((PwmTool*)robot_tools[1])->init(PIN_TOOL2, 2000, 12);
 
   // setup timer for updating the motion controller (which evaluates joint space path
   // segments and produces the current target position for the servo loops)
@@ -132,8 +139,9 @@ void Robot::init() {
 
 
 void Robot::update_command_parser() {
-  // process serial input
-  if (Serial.available()) {
+  // process serial input: drain the serial FIFO, but cap the reads per call so a
+  // continuous stream can't starve the rest of the core0 loop (e.g. path planner).
+  for (int i = 0; i < 64 && Serial.available(); i++) {
     char c = Serial.read();
     command_parser.add_input_character(c);
     // Serial.write(c);
@@ -175,8 +183,18 @@ void Robot::update_path_planner() {
     // update planner and generate joint space path segments
     path_planner.process(true);
 
-    if(path_planner.all_finished())
-      state = ERobotState::IDLE;
+    // The output buffer running empty does not necessarily mean the program is done -
+    // the host may just be behind. Dropping straight to IDLE would force a full
+    // re-buffering (path_buffering_time_us) before motion could resume.
+    // Only fall back to IDLE once the buffer has stayed empty for a grace period.
+    if(path_planner.all_finished()) {
+      if(path_buffer_empty_time == 0)
+        path_buffer_empty_time = time;
+      else if(time - path_buffer_empty_time > path_buffering_time_us)
+        state = ERobotState::IDLE;
+    } else {
+      path_buffer_empty_time = 0;
+    }
   }
 }
 
@@ -400,11 +418,14 @@ bool Robot::calibrate_joint(int joint_idx, bool store_calibration, bool print_me
   bool calibration_ok = joint->calibrate(print_measurements);
   if(!calibration_ok) {
     spin_unlock_unsafe(joints_spin_lock);
+    enable_servo_control(true);
     return false;
   }
 
   // joint->servo_controller->move_to_open_loop(0.05f, 1.0);
+  spin_lock_unsafe_blocking(shared_data.lock);
   shared_data.joint_target_positions[joint_idx] = 0; // joint->servo_controller->read_position();
+  spin_unlock_unsafe(shared_data.lock);
 
   if(store_calibration)
     joint->store_calibration();
@@ -578,7 +599,12 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
   // print lookup table
   if(cmd.get_command() == "M59") {
     int idx = (int)cmd.get_value('J', 0);
+    if(idx < 0 || idx >= NUM_JOINTS) {
+      reply = "error: joint index out of range\n";
+      return;
+    }
     joints[idx]->servo_controller->get_enc_to_pos_lut().print_to_log();
+    reply = "ok\n";
     return;
   }
 
@@ -589,6 +615,9 @@ void Robot::process_machine_command(const GCodeCommand& cmd, std::string& reply)
     reply += "ok\n";
     return;
   }
+
+  // unknown machine command, always send a reply so the host does not wait forever
+  reply = "error: unknown machine command\n";
 }
 
 void Robot::process_motion_command(const GCodeCommand& cmd, std::string& reply) {
@@ -708,8 +737,10 @@ void Robot::process_set_servo_parameter_command(const GCodeCommand& cmd, std::st
   bool has_all = cmd.has_word('A') && cmd.has_word('B') && cmd.has_word('C') && 
                  cmd.has_word('D') && cmd.has_word('F');
 
-  if(has_all == false)
+  if(has_all == false) {
     reply = "error: not all parameters given (A,B,C,D,F expected)\n";
+    return;
+  }
 
   for(int i=0; i<NUM_JOINTS; i++) {
 

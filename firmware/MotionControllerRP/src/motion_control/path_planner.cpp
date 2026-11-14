@@ -12,12 +12,10 @@
 
 #include <algorithm>
 
-PathPlanner::PathPlanner(IKinematicModel* kinematic_model, float time_step) {
+PathPlanner::PathPlanner(IKinematicModel* kinematic_model, float time_step, LinearAngular junction_deviation) {
   PathPlanner::segment_time_step = time_step;
   PathPlanner::kinematic_model = kinematic_model;
-
-  junction_deviation.linear = 0.0001;  // mm
-  junction_deviation.angular = 0.001; // rad
+  PathPlanner::junction_deviation = junction_deviation;
 }
 
 PathPlanner::~PathPlanner() {
@@ -38,32 +36,40 @@ bool PathPlanner::add_cartesian_path_segment(const CartesianPathSegment& path_se
 }
 
 void PathPlanner::process(bool disable_interrupts_for_queue_update) {
-  // create new segment generator for next cartesian path segment
-  // the segment stays in the queue until it is completed
-  if(segment_generator == nullptr && ct_path_segment_queue.empty() == false) {
-    auto* current_segment = ct_path_segment_queue.peek();
+  // Generate up to MAX_SEGMENTS_PER_CALL joint space segments per call. Generating only
+  // one per call would cap the conversion rate at the core0 loop rate.
+  constexpr int MAX_SEGMENTS_PER_CALL = 8;
 
-    // compute motion profile ( active segment can not change anymore )
-    current_segment->compute_motion_profile();
+  for(int i = 0; i < MAX_SEGMENTS_PER_CALL && js_path_segment_queue.full() == false; i++) {
+    // create new segment generator for next cartesian path segment
+    // the segment stays in the queue until it is completed
+    if(segment_generator == nullptr && ct_path_segment_queue.empty() == false) {
+      auto* current_segment = ct_path_segment_queue.peek();
 
-    // create path segment generator
-    segment_generator = new JointSpacePathSegmentGenerator(current_segment, 
-                                                           kinematic_model,
-                                                           segment_time_step);
+      // compute motion profile ( active segment can not change anymore )
+      current_segment->compute_motion_profile();
 
-    /*LOG_INFO("Starting segment: duration=%fs, (%f, %f, %f)->(%f, %f, %f) | queue size: %i", 
-      current_segment->get_duration(),
-      current_segment->start_pose.translation.x,
-      current_segment->start_pose.translation.y,
-      current_segment->start_pose.translation.z,
-      current_segment->end_pose.translation.x,
-      current_segment->end_pose.translation.y,
-      current_segment->end_pose.translation.z,
-      ct_path_segment_queue.size()); */
-  }
+      // create path segment generator
+      segment_generator = new JointSpacePathSegmentGenerator(current_segment,
+                                                             kinematic_model,
+                                                             segment_time_step);
 
-  // generate joint space segment
-  if(segment_generator != nullptr && js_path_segment_queue.full() == false) {
+      /*LOG_INFO("Starting segment: duration=%fs, (%f, %f, %f)->(%f, %f, %f) | queue size: %i",
+        current_segment->get_duration(),
+        current_segment->start_pose.translation.x,
+        current_segment->start_pose.translation.y,
+        current_segment->start_pose.translation.z,
+        current_segment->end_pose.translation.x,
+        current_segment->end_pose.translation.y,
+        current_segment->end_pose.translation.z,
+        ct_path_segment_queue.size()); */
+    }
+
+    // no cartesian path segment available -> nothing more to generate
+    if(segment_generator == nullptr)
+      break;
+
+    // generate joint space segment
     JointSpacePathSegment segment;
     bool end_reached = segment_generator->generate_next(segment);
 
@@ -71,12 +77,12 @@ void PathPlanner::process(bool disable_interrupts_for_queue_update) {
     if(disable_interrupts_for_queue_update) {
       uint32_t status = save_and_disable_interrupts();
       js_path_segment_queue.push(segment);
-      restore_interrupts(status); 
+      restore_interrupts(status);
     } else {
       js_path_segment_queue.push(segment);
     }
 
-   // LOG_INFO("Adding joint space segment: [%f, %f, %f] -> [%f, %f, %f]", 
+   // LOG_INFO("Adding joint space segment: [%f, %f, %f] -> [%f, %f, %f]",
    //   segment.start_pos[0], segment.start_pos[1],  segment.start_pos[2],
    //   segment.end_pos[0], segment.end_pos[1],  segment.end_pos[2]);
 
@@ -148,9 +154,10 @@ void PathPlanner::run_look_ahead_planning() {
     // no angular junction velocity limit yet
     float max_junction_velocity_angular = 1e10;
 
-    // compute max velocity delta
-    // In the reverse pass the junction is the start of s2, so the limit comes
-    // from s2's ability to decelerate to its already resolved end velocity.
+
+    // compute max junction velocity from which s2 can still decelerate to its own
+    // (already finalized) end velocity within its travel distance. mirrors the forward
+    // pass reachability check, which bounds s1's end velocity over s1's length.
     float v_start_max_linear = std::sqrt(std::max(0.0f, powf(s2->end_velocity.linear, 2.0f) + 2 * s2->max_acceleration.linear * s2->travel_distance.linear));
     float v_start_max_angular = std::sqrt(std::max(0.0f, powf(s2->end_velocity.angular, 2.0f) + 2 * s2->max_acceleration.angular * s2->travel_distance.angular));
 
