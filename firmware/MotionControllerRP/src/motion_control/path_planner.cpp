@@ -154,6 +154,7 @@ void PathPlanner::run_look_ahead_planning() {
     // no angular junction velocity limit yet
     float max_junction_velocity_angular = 1e10;
 
+
     // compute max junction velocity from which s2 can still decelerate to its own
     // (already finalized) end velocity within its travel distance. mirrors the forward
     // pass reachability check, which bounds s1's end velocity over s1's length.
