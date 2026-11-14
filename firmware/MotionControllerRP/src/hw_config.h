@@ -40,6 +40,11 @@ constexpr float HOMING_CURRENT    = 0.15f;       // range 0..1
 // degrees from home position
 constexpr float CALIBRATION_RANGE = 83; 
 
+// degrees to retract after homing, before starting calibration run
+// can be used to center the mid-point or to avoid non-linear encoder
+// measurements at the beginning of the calibration run.
+constexpr float CALIBRATION_RETRACT_ANGLE = 0.0f;
+
 // velocity of the magnetic field during calibration (lower is more accurate)
 constexpr float CALIBRATION_FIELD_VELOCITY = 20.0f; 
 
