@@ -1,1 +1,1 @@
-static const char* FIRMWARE_VERSION = "v1.0.6";
+static const char* FIRMWARE_VERSION = "v1.0.7";
